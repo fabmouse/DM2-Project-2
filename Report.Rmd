@@ -1,0 +1,39 @@
+---
+title: "Report"
+author: "Drunken Master 2"
+date: "Due 5 November 2018"
+output: pdf_document
+toc: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction 
+
+## SAS 
+
+## R 
+
+## Examples
+
+### SAS
+
+```{r}
+#Include plots and interpretation
+```
+
+### R
+
+```{r}
+#Include plots and interpretation
+```
+
+## References
+
+R Core Team (2018). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. Available at: https://www.R-project.org/.
+
+SAS 9.4, SAS Institute Inc., Cary, NC, USA.
+
+## Appendix
