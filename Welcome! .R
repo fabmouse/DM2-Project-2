@@ -7,6 +7,6 @@
 #1. Brooke :) 
 #2. Rui :)
 #3. Phil
-#4. Linyue
+#4. Linyue :)
 #5. Ziqi Su
 #6. Abhinav Nair
