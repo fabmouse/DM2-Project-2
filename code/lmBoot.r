@@ -1,6 +1,4 @@
 # define helper functions
-fitness <- read.csv("data/fitness.csv")
-df <- data.frame(y = fitness$RunTime,x = fitness$Weight)
 
 lmBoot <- function(inputData, nBoot){
   
@@ -32,6 +30,9 @@ lmBoot <- function(inputData, nBoot){
   
 }
 
+
+fitness <- read.csv("data/fitness.csv")
+df <- data.frame(y = fitness$RunTime,x = fitness$Weight)
 
 lmBootSu <- function(inputData, nBoot){
   bootResults <- matrix(NA,nrow = nBoot, ncol = 2)
