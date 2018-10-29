@@ -1,6 +1,10 @@
+# define helper functions
+fitness <- read.csv("data/fitness.csv")
+df <- data.frame(y = fitness$RunTime,x = fitness$Weight)
+
 lmBoot <- function(inputData, nBoot){
   
-  bootResults <- matrix(nrow = 2,ncol = 2* nBoot)
+  # bootResults <- array(dim=c(nBoot, 2))#
   
   for(i in 1:nBoot){
     
@@ -8,35 +12,33 @@ lmBoot <- function(inputData, nBoot){
     bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
     
     # fit the model under this alternative reality
+    bootLM <- lm(y ~ x, data = bootData)
     
-    
-    bootLM <- lm(inputData$Oxygen ~ inputData$Age, data = bootData)
-  
-    bootResults[i] <- coef(bootLM)
     # store the coefs
     if(i == 1){
       
       bootResults <- matrix(coef(bootLM), ncol = 2)
-
-      } else {
+      
+    } else {
       
       bootResults<- rbind(bootResults, matrix(coef(bootLM), ncol = 2))
-
+      
     }
     
-
+    
   } # end of i loop
   
   bootResults
   
 }
 
+
 lmBootSu <- function(inputData, nBoot){
-  bootResults <- matrix(nrow = nBoot, ncol = 2)
+  bootResults <- matrix(NA,nrow = nBoot, ncol = 2)
   for(i in 1:nBoot){
     bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
-    bootLM <- lm(inputData$Oxygen ~ inputData$Age, data = bootData)
-    bootResults[i] <- coef(bootLM)
+    bootLM <- lm(y ~ x, data = bootData)
+    bootResults[i,] <- coef(bootLM)
     
   }
   bootResults
