@@ -30,17 +30,31 @@ lmBoot <- function(inputData, nBoot){
   
 }
 
+boot <- function(inputData){
+  boot <- coef(lm(y ~ x, data = inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]))
+}
+
 
 fitness <- read.csv("data/fitness.csv")
 df <- data.frame(y = fitness$RunTime,x = fitness$Weight)
 
 lmBootSu <- function(inputData, nBoot){
-  bootResults <- matrix(NA,nrow = nBoot, ncol = 2)
+  #bootResults <- matrix(NA,nrow = nBoot, ncol = 2)
+  
   for(i in 1:nBoot){
-    bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
-    bootLM <- lm(y ~ x, data = bootData)
-    bootResults[i,] <- coef(bootLM)
+    #bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
+    #print(bootData)
+    #bootLM <- lm(y ~ x, data = inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),])
+    #bootResults[i,] <- coef(bootLM)
+    bootResults[i,] <- coef(lm(y ~ x, data = inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]))
     
   }
+  
+  #boot[i,] <- coef(lm(y ~ x, data = inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]))
+  #bootData <- apply
+  
+  #bootResults <- apply(inputData,bootResults,boot)
+  #bootResult <- apply(1:nBoot, function(x){ coef(lm(y ~ z, data = x[sample(1:nrow(x), nrow(x), replace = T),])) })
   bootResults
 }
+
