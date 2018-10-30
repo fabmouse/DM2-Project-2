@@ -1,3 +1,7 @@
+library(foreach)
+library(parallel)
+library(doParallel)
+registerDoParallel(cores=detectCores(all.tests=TRUE))
 # define helper functions
 
 lmBoot <- function(inputData, nBoot){
@@ -37,6 +41,7 @@ boot <- function(inputData){
 
 fitness <- read.csv("data/fitness.csv")
 df <- data.frame(y = fitness$RunTime,x = fitness$Weight)
+start1 <- Sys.time()
 
 lmBootSu <- function(inputData, nBoot){
   #bootResults <- matrix(NA,nrow = nBoot, ncol = 2)
