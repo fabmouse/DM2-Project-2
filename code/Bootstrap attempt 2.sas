@@ -1,3 +1,4 @@
+ods rtf file="/folders/myfolders/myODSoutput.rtf";
 %macro newboot2(NumberOfLoops, DataSet, XVariable, YVariable);
 
 /* Sample the data */
@@ -53,3 +54,5 @@
 %let _edtm=%sysfunc(datetime());
 %let _runtm=%sysfunc(putn(&_edtm - &_sdtm, 12.4));
 %put It took &_runtm seconds to run the program;
+
+ods rtf close;
