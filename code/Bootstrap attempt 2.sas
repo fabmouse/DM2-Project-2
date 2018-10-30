@@ -1,4 +1,3 @@
-ods rtf file="/folders/myfolders/myODSoutput.rtf";
 %macro newboot2(NumberOfLoops, DataSet, XVariable, YVariable);
 
 /* Sample the data */
@@ -30,21 +29,61 @@ ods rtf file="/folders/myfolders/myODSoutput.rtf";
        run;
 
 /*Calculate 95% confidence intervals for the mean of X variable*/
-       proc univariate data=uniOut;
-       var mean&XVariable;
-       output out=BootCI pctlpts=2.5, 97.5 pctlpre=CI; 
-       run;
-  
+/*       proc univariate data=uniOut;*/
+/*       var mean&XVariable;*/
+/*       output out=BootCI pctlpts=2.5, 97.5 pctlpre=CI; */
+/*       run;*/
+
+/*Calculate 95% confidence intervals for the mean of intercept parameter*/
+       proc univariate data=Resultholder3;
+       var Intercept;
+       output out=InterceptCI pctlpts=2.5, 97.5 pctlpre=CI; 
+       run;
+       
+/*Calculate 95% confidence intervals for the mean of X variable parameter*/
+       proc univariate data=Resultholder3;
+       var &XVariable;
+       output out=XvarCI pctlpts=2.5, 97.5 pctlpre=CI; 
+       run;
+
 /*Produces the means of the parameters from the results of the bootstrap*/
-       proc means data=Resultholder3;
-       run;
+/*       proc means data=Resultholder3;*/
+/*       run;*/
 
 /*Produce chart of parameters - commented out for now*/
-       proc univariate data=Resultholder3;
-       histogram; 
-       run;
+/*       proc univariate data=Resultholder3;*/
+/*       histogram;*/ 
+/*       run;*/
+
+/*Create RTF file*/
+       ods rtf file="output.rtf" startpage = never;
+              title = "SAS Output";
+              
+              /*Results for intercept parameter*/
+              proc print data=InterceptCI;
+              run;
+              proc gchart data=Resultholder3;
+              vbar Intercept;
+              run;
+              
+              /*Results for slope parameter*/
+              ods startpage = now; /*Insert a page break for new results*/
+              proc print data=XvarCI;
+              run;
+              proc gchart data=Resultholder3;
+              vbar &XVariable;
+              run;
+       ods rtf close;
 
 %MEND newboot2;
+
+/*Importing the fitness data set*/
+proc import out = Asmt2.fitness 
+            datafile = "C:\Users\ll99\Desktop\ASMT 2\fitness.csv" 
+            dbms = CSV REPLACE;
+     getnames = YES;
+     datarow = 2; 
+run;
 
 /*Timing the macro*/
 /*Remember to reference this code*/
