@@ -31,7 +31,8 @@ lmBoot <- function(inputData, nBoot){
 }
 
 boot <- function(inputData){
-  boot <- coef(lm(y ~ x, data = inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]))
+  NumofDim <- norw(inputData)
+  
 }
 
 
@@ -40,6 +41,10 @@ df <- data.frame(y = fitness$RunTime,x = fitness$Weight)
 
 lmBootSu <- function(inputData, nBoot){
   #bootResults <- matrix(NA,nrow = nBoot, ncol = 2)
+  NumofDim <- nrow(inputData)
+  print(NumofDim)
+  lapply(1:nBoot , function(y){bootData[y] <- inputData[sample(1:NumofDim, NumofDim, replace = T),]})
+  print(bootData)
   
   for(i in 1:nBoot){
     #bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
