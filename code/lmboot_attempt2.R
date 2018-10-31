@@ -1,7 +1,9 @@
-#Fitness data for testing
+#Load Fitness data 
 fitData <- read.csv("data/fitness.csv")
 
-testData <- fitData[, c(3, 1, 2)] #Test data with response as the first variable and covariates of interest after
+#Testing datasets with response as the first variable and covariates of interest after
+library(dplyr)
+testData <- fitData[, c(3, 1, 2)]
 testData2 <- fitData %>%
                 select(Oxygen, everything())
 
@@ -10,11 +12,8 @@ testData2 <- fitData %>%
 #    It should also be parallelised at some level. 
 #    You should profile both the original and final versions as well as determining the overall speed increase. 
 #    Include the profile file in your repository.
-
 #2. Your new bootstrap function in R should be altered to accept an arbitrary number of covariates.
 #3. Micro-benchmark (package microbenchmark) your R bootstrap against bootstraps via the package boot.
-
-
 
 # ORIGIONAL LMBOOT FUNCTION (CARL) ----------------------------------------
 lmBoot <- function(inputData, nBoot){
@@ -108,16 +107,47 @@ set.seed(1234)
 system.time(lmBoot_3(testData, 100000))     #user  system elapsed 
                                             #5.346   0.138   5.510  
 
-#Parallelisation: --------------------------------------------------------------
+# Parallelisation: --------------------------------------------------------------
+#install.packages(doParallel)
 library(doParallel)
 
 lmBoot_4 <- function(inputData, nBoot){
-
+  X <- cbind(1, scale(inputData[, -1], scale = F)) 
+  Y <- scale(inputData[, 1], scale = F)            
+  scaleData <- as.matrix(cbind(Y, X))
+  
+  nCores <- detectCores()
+  myClust <- makeCluster(nCores - 1, type = "PSOCK")
+  registerDoParallel(myClust)
+  
+  bootResults <- array(dim = c(nBoot, ncol(X)))
+  bootResults <- parLapply(myClust, 1:nBoot, bootLM, inputData = scaleData)
+  
+  #bootResults <- plyr::ldply(bootResults)
+  stopCluster(myClust)
+  return(t(bootResults))
   
 }
 
+#foreach(i = 1:1000) %do% bootLM(i, contrivedData) (?)
 
-#RUI WORK: ---------------------------------------------------------------------
+set.seed(1234)
+lmBoot_2(testData, 5)
+set.seed(1234, "L'Ecuyer") #Add "L'Ecuyer" to make it reproduceable
+lmBoot_4(testData, 5)
+
+set.seed(1234)
+system.time(lmBoot_4(testData, 100000)) 
+
+# Profiling ---------------------------------------------------------------
+install.packages("profvis")
+library(profvis)
+
+profvis({lmBoot_2(testData, 1000)})
+profvis({lmBoot_3(testData, 1000)})
+profvis({lmBoot_4(testData, 1000)})
+
+# RUI WORK: ---------------------------------------------------------------------
 # Add multiple covariates
 # Do some more optimisations (do the resampling in parallel or only once)
 # You can still do sime changes to the bootLM output so that you can get rid of the transpose and plyr::ldply(bootResults)
