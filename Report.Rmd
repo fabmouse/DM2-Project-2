@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction 
 
-Bootstrapping is usually implimented using simple Monte Carlo simulations whereby a certain calculation is repeated a large number of times with random sampling (ref?). Repeating calculations a large number of times, say 1,000,000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
+Bootstrapping is an area of ststistics that is usually implimented using simple Monte Carlo simulations whereby a certain calculation is repeated a large number of times with random sampling (ref?). Repeating calculations a large number of times, say 1,000,000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
 
 This project aimed to improve and produce two fast and efficient bootstrap functions using R 3.5.1 (R, 2018) and SAS 9.4 (SAS Institute, Cary NC).
 
@@ -21,8 +21,35 @@ This project aimed to improve and produce two fast and efficient bootstrap funct
 ## R 
 
 ### *The function lmBoot*
+
+The function *lmBoot* (Appendix A.###) uses bootstrap sampling methods to calculate estimates for the means and confidence intervals of the slope and intercept parameters produced by a linear regression. 
+
+The function takes in two arguments:
+
+- inputData: the dataset that will be used to for sampling, where the response variable is in the first column and the remainder of the columns contain the covariates of interest.
+- nBoot: The number of bootstrap samples to compute.
+
+The function outputs:
+
+- BootResults: An array with the number of rows equivalent to the nBoot argument and as many columns as there are Beta coeficients; i.e. for the intercept and covariates.
+
+***
+*It doesn't yet do this, but maybe it should?*
+
+- An array containing 95% confidence intervals for each parameter and plots of the distributions of the bootstrap parameters.
+
+***
  
 ### *Changes made to lmBoot*
+1. The use of the *lm* function was removed and the beta coefficients rather calculated using matrix clculations. 
+
+$$
+\beta = (X^TX)^{-1}X^TY
+$$
+
+2. *forloops* are known to be relatively slow and inefficient. Therefore, the *forloop* was replaced using *sapply* which applies a function to each element of a matrix. The function called *bootLM* was written to carry out the bootstrap algorithm. 
+
+3. Parallisation
 
 ### *Example analysis using lmBoot*
 
@@ -36,7 +63,7 @@ This project aimed to improve and produce two fast and efficient bootstrap funct
 
 ### *The program newboot2*
 
-The macro program "newboot2" uses bootstrap sampling to calculate estimates for the means and confidence intervals of the slope and intercept parameters produced by a linear regression. 
+The macro program *newboot2* (Appendix A.###) uses bootstrap sampling methods to calculate estimates for the means and confidence intervals of the slope and intercept parameters produced by a linear regression. 
 
 It takes in four agruments:
 
@@ -57,6 +84,8 @@ The function makes use of
 - PROC REG to perform a linear regression.
  
 ### *Changes made to newboot2*
+
+The changes made to newBoot2 were motivated, in part, by the work of Cassel (2018) in his paper "Don't Be Loopy: Re-Sampling and Simulation the SAS® Way".
 
 1. The %do% loop was first removed and the following simple code was added to PROC SURVEYSELECT:  
 *samprate = 1*  
@@ -91,6 +120,8 @@ Initial | Removed %do% Loop | Loading Dataset to RAM|
 ## References
 Cassell, D. (2018). Don't Be Loopy: Re-Sampling and Simulation the SAS® Way. [online]. Available at: http://www2.sas.com/proceedings/forum2007/183-2007.pdf [Accessed 26 Oct. 2018].
 
+Donovan, C. (2018). MT5763 Project 2 - code collaboration and computer intensive inference. [Online].
+
 H, J. (2012). To calculate SAS program run time. [online]. Available at: http://sashowto.blogspot.com/2012/06/to-calculate-sas-program-run-time.html [Accessed 26 Oct. 2018].
 
 R Core Team (2018). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. Available at: https://www.R-project.org/.
@@ -103,12 +134,26 @@ SAS Institute Inc. 2004. Proceedings of the Twenty-Ninth Annual SAS® Users Grou
 
 ## Appendix
 
+### A.### The lmBoot Function
+
+```{r, eval = FALSE}
+#The final code used for lmBoot
+```
+
 ### A.### Code to measure program runtime in SAS
 
+```{r, eval = FALSE}
 %let _sdtm=%sysfunc(datetime());
 
-  *Program of interest to be timed*
+  Program of interest to be timed
 
 %let _edtm=%sysfunc(datetime());  
 %let _runtm=%sysfunc(putn(&_edtm - &_sdtm, 12.4));  
 %put It took &_runtm seconds to run the program;
+```
+
+### A.### The newBoot2 Program
+
+```{r, eval = FALSE}
+#The final code used for newBoot2
+```
