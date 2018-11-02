@@ -16,6 +16,21 @@ Bootstrapping is an area of ststistics that is usually implimented using simple 
 
 This project aimed to improve and produce two fast and efficient bootstrap functions using R 3.5.1 (R, 2018) and SAS 9.4 (SAS Institute, Cary NC).
 
+```{r load}
+fitData <- read.csv("data/fitness.csv")
+```
+
+A short example analysis was given for each function. The fitness dataset from Rawlings (1998) contains measurements of the following seven variables obtained
+from 31 men:
+• Age: Age in years
+• Weight: Weight in kg
+• Oxygen: Oxygen intake rate, ml per kg body weight per minute
+• RunTime: time to run 1.5 miles in minutes
+• RestPulse: heart rate while resting
+• RunPulse: heart rate at end of run
+• MaxPulse: maximum heart rate recorded while running
+All alnalysis in the following report were carried out using R 3.5.1 software.
+
 \pagebreak
 
 ## R 
@@ -32,38 +47,90 @@ The function takes in two arguments:
 The function outputs:
 
 - BootResults: An array with the number of rows equivalent to the nBoot argument and as many columns as there are Beta coeficients; i.e. for the intercept and covariates.
-
-***
-*It doesn't yet do this, but maybe it should?*
-
-- An array containing 95% confidence intervals for each parameter and plots of the distributions of the bootstrap parameters.
-
-***
+- ConfidenceIntervals: A matrix containing 95% confidence intervals for each parameter estimate.
  
 ### *Changes made to lmBoot*
-1. The use of the *lm* function was removed and the beta coefficients rather calculated using matrix clculations. 
+1. The original lmBoot function only produced bootstrap saples for one covariate. This was change so that lmBoot_2 produces bootstrap estimates for a multiple number of covariates and calculates ocnfidence intervals for each parameter estimate. 
+
+2. The use of the *lm* function was removed and the beta coefficients rather calculated using matrix clculations. 
 
 $$
 \beta = (X^TX)^{-1}X^TY
 $$
 
-2. *forloops* are known to be relatively slow and inefficient. Therefore, the *forloop* was replaced using *sapply* which applies a function to each element of a matrix. The function called *bootLM* was written to carry out the bootstrap algorithm. 
+3. *forloops* are known to be relatively slow and inefficient. Therefore, the *forloop* was replaced using *sapply* which applies a function to each element of a matrix. The function called *bootLM* was written to carry out the bootstrap algorithm. 
 
-3. Parallisation
+4. Parallisation
+
+Table ### illustrates differences in runtime for three different versions of the lmBoot function; the original, an improved version and a parallised version. Each function was timed on howlong it took to resaample 100, 1000, 10000 and 100000 samples.
+
+```{r rSpeed, echo = FALSE}
+sasTiming <- matrix(c("100", 0.079, 0.006, 0.020,  
+                      "1000", 0.941, 0.052, 0.026, 
+                      "10000", 8.502, 0.564, 0.052, 
+                      "100000", "-", 5.538, 0.370), byrow = TRUE, ncol = 4)
+knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime (in seconds) of lmBoot", 
+             col.names = c("Samples", "lmBoot", "lmBoot Improved", "lmBoot Parallised"))
+
+```
+
 
 ### *Example analysis using lmBoot*
 
-```{r rcode}
-#Include plots and interpretation
+```{r rcode, echo = FALSE}
+library(doParallel)
+bootLM <- function(inputData, index){
+  bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
+  Xmat <- bootData[, -1]
+  Ymat <- bootData[, 1]
+  beta <- solve(t(Xmat)%*%Xmat)%*%t(Xmat)%*%Ymat
+  return(t(beta))
+}
+lmBoot_4 <- function(inputData, nBoot){
+  X <- cbind(1, inputData[, -1]) 
+  sampleData <- as.matrix(cbind(inputData[, 1] , X))
+  
+  nCores <- detectCores()
+  myClust <- makeCluster(nCores - 1, type = "PSOCK")
+  registerDoParallel(myClust)
+  
+  bootResults <- array(dim = c(nBoot, ncol(X)))
+  bootResults <- parSapply(myClust, 1:nBoot, bootLM, inputData = sampleData)
+  
+  #bootResults <- plyr::ldply(bootResults)
+  stopCluster(myClust)
+  bootResults <- t(bootResults)
+  
+  #Confidence intervals
+  ciMatrix <- matrix(NA, nrow = ncol(X), ncol = 2)
+  for(i in 1:ncol(X)){
+    ciMatrix[i, ] <- quantile(bootResults[,i], probs = c(0.025, 0.975))
+  }
+  colnames(ciMatrix) <- c("2.5%", "97.5%")
+  rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
+  
+  return(list(BootResults = bootResults,
+              ConfidenceIntervals = ciMatrix))
+  
+}
+
+library(dplyr)
+testData <- fitData %>% select(Oxygen, everything())
+testResults <- lmBoot_4(testData, 100)
+
+
+
+knitr::kable(testResults$ConfidenceIntervals, digits = 3, caption = "95% Confidence Intervals", 
+             col.names = c("2.5%", "97.5%"))
 ```
 
 \pagebreak 
 
 ## SAS 
 
-### *The program newboot2*
+### *The program SASBoot*
 
-The macro program *newboot2* (Appendix A.###) uses bootstrap sampling methods to calculate estimates for the means and confidence intervals of the slope and intercept parameters produced by a linear regression. 
+The macro program *SASBoot* (Appendix A.###) uses bootstrap sampling methods to calculate estimates for the means and confidence intervals of the slope and intercept parameters produced by a linear regression. 
 
 It takes in four agruments:
 
@@ -75,7 +142,7 @@ It takes in four agruments:
 The program then outputs:
 
 - ResultHolder: A SAS dataset with the number of rows equivalent to the NumberOfLoops argument and two columns; RandomIntercept and RandomSlope. 
-- An RTF file containing 95% confidence intervals for the mean, the mean estimate for each parameter and plots of the distributions of the bootstrap parameters.
+- output.rtf: An RTF file containing 95% confidence intervals for the mean, the mean estimate for each parameter and plots of the distributions of the bootstrap parameters.
  
 The function makes use of
 
@@ -83,9 +150,9 @@ The function makes use of
 - PROC SURVEYSELECT which allows the use of random sampling to generate random samples from a selected or inputed dataset.
 - PROC REG to perform a linear regression.
  
-### *Changes made to newboot2*
+### *Changes made to SASBoot*
 
-The changes made to newBoot2 were motivated, in part, by the work of Cassel (2018) in his paper "Don't Be Loopy: Re-Sampling and Simulation the SAS® Way".
+The changes made to SASBoot were motivated, in part, by the work of Cassel (2018) in his paper "Don't Be Loopy: Re-Sampling and Simulation the SAS® Way".
 
 1. The %do% loop was first removed and the following simple code was added to PROC SURVEYSELECT:  
 *samprate = 1*  
@@ -101,19 +168,31 @@ which ensures that NumberOfLoops samples of the same size as the origional data 
 (4. Replaced noprint and ODS listing close - still working on this)
 
 
-Table ### displays the runtime (in seconds) for 100 loops. The code used to measure the run time of the newboot2 program can be found in Appendix A.### (H, 2012).
+The program was run six times and Table ### displays the runtime (in seconds) for 1000 loops. The code used to measure the run time of the SASBoot program can be found in Appendix A.### (H, 2012).
 
-Initial | Removed %do% Loop | Loading Dataset to RAM|
---------|-------------------|-----------------------|
-37.5370 |      0.2190       |          0.1880       |
+```{r sasSpeed, echo = FALSE}
+sasTiming <- matrix(c(183.3600, 0.2970, 6.0680, 
+                      189.9730, 6.0870, 6.0870,
+                      195.4200, 0.4220, 6.0640,
+                      192.8350, 0.3130, 6.0410,
+                      192.7860, 0.2960, 5.9410,
+                      193.5580, 0.3140, 6.0620), byrow = TRUE, ncol = 3)
+knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime of SASBoot", 
+             col.names = c("RegBoot", " SASBoot ", "SASBoot (with rtf output)"))
 
-- Initial runtime for 10 loops: 3.3390s
+```
 
-### *Example analysis using newboot2*
+### *Example analysis using SASBoot*
 
 ```{r SAS}
 #Include plots and interpretation
 ```
+
+An example analysis was conducted using the fitness datset. A linear model was set up with Oygen as the response and Weight as the covariate. The bootstrap 95% confidence intervals produced by SASBoot were then used to test the null hypothesis that there is no relationship between Oxygen and Weight, i.e. $\beta_i = 0$. 
+
+If the confidence interval contains 0, one then fails to reject the null hypothesis and if it does not contain 0 one can reject the null hypothesis.
+
+The confidence interval for the intercept term (36.4824, 73.1590) does not contain 0 which suggests that the estimator is not signicant at the 5% level. The confidence interval for the intercept term (-0.32842, 0.13533) does contain 0 which suggests that the estimator is signicant at the 5% level. 
 
 \pagebreak 
 
@@ -152,8 +231,8 @@ SAS Institute Inc. 2004. Proceedings of the Twenty-Ninth Annual SAS® Users Grou
 %put It took &_runtm seconds to run the program;
 ```
 
-### A.### The newBoot2 Program
+### A.### The SASBoot Program
 
 ```{r, eval = FALSE}
-#The final code used for newBoot2
+#The final code used for SASBoot
 ```

@@ -1,12 +1,3 @@
-#Load Fitness data 
-fitData <- read.csv("data/fitness.csv")
-
-#Testing datasets with response as the first variable and covariates of interest after
-library(dplyr)
-testData <- fitData[, c(3, 1, 2)]
-testData2 <- fitData %>%
-                select(Oxygen, everything())
-
 #WHAT TO DO:
 # 1. Modify the the R bootstrapping code to be more efficient. 
 #    It should also be parallelised at some level. 
@@ -33,43 +24,6 @@ lmBoot <- function(inputData, nBoot){
 }
 
 # IMPROVEMENTS: ----------------------------------------------------------------
-
-#GENERAL DOCUMENTATION:
-#Purpose: Generate a large number of linear regression beta coefficients using
-#         bootstrap methods.
-#Inputs: inputData: a dataframe containing the response variable, which must be 
-#        in the first column of the dataframe, and the covariates of interest
-#        nBoot: the number of bootstrap samples to generate.
-#Outputs: an array of nBoot beta coefficients for the intercept and covariates.
-
-lmBoot_2 <- function(inputData, nBoot){
-  #Changes: Calculates the Beta coefficients using matrix notaion rather than lm
-  
-  #Scale centers and/or sclaes the columns of a numeric matrix
-  X <- cbind(1, scale(inputData[, -1], scale = F)) #Turns Covariates into a matrix and adding 1 for the intercept term
-  Y <- scale(inputData[, 1], scale = F)            #Turns the response into a matrix
-  scaleData <- as.matrix(cbind(Y, X))              #Final matrix with Response in first column and intercept and covariates in the rest
-  
-  bootResults <- array(dim = c(nBoot, ncol(X)))    #Build empty array to put results in
-  for(i in 1:nBoot){
-    # resample our data with replacement
-    bootData <- scaleData[sample(1:nrow(inputData), nrow(inputData), replace = T),]  #Sample from 1:nrow of input data. Like random numbers to reassign
-    Xmat <- bootData[, -1]                         #Separate into x and y matrices
-    Ymat <- bootData[, 1]
-    
-    # fit the model under this alternative reality using matrix form rather than lm
-    beta <- solve(t(Xmat)%*%Xmat)%*%t(Xmat)%*%Ymat 
-    bootResults[i,] <- beta
-  } # end of i loop
-  colnames(bootResults) <- c("Intercept", names(inputData[-1]))
-  bootResults
-}
-
-lmBoot_2(testData, 10)
-set.seed(1234)
-system.time(lmBoot_2(testData, 100000))    #user  system elapsed 
-                                           #5.658   0.136   5.851
-
 #Create a function for bootstrapping algorithm to use inside other functions
 bootLM <- function(inputData, index){
   bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
@@ -78,66 +32,110 @@ bootLM <- function(inputData, index){
   beta <- solve(t(Xmat)%*%Xmat)%*%t(Xmat)%*%Ymat
   return(t(beta))
 }
-
 lmBoot_3 <- function(inputData, nBoot){
-  #Changes: 1. Uses a small function to carry out the bootstrap algorithm
-  #         2. Uses sapply instead of a for loop
+  #Purpose: Generate a large number of linear regression beta coefficients using
+  #         bootstrap methods.
+  #Inputs: inputData: a dataframe containing the response variable, which must be 
+  #        in the first column of the dataframe, and the covariates of interest
+  #        nBoot: the number of bootstrap samples to generate.
+  #Outputs: BootResults: An arraycontaing the parameter estimates of each 
+  #         each bootstrap sample.
+  #         ConfidenceIntervals: A matrix containing 95% confidence intervals 
+  #         for each parameter.
   
-  #Scale centers and/or sclaes the columns of a numeric matrix
-  X <- cbind(1, scale(inputData[, -1], scale = F)) 
-  Y <- scale(inputData[, 1], scale = F)            
-  scaleData <- as.matrix(cbind(Y, X))
+  #Changes: 1. Allows for multiple covariates
+  #         2. Calculates the Beta coefficients using matrix notaion rather than lm
+  #         3. Uses a small function to carry out the bootstrap algorithm
+  #         4. Uses sapply instead of a for loop
+  
+  #Create a sample dataset with a column of 1s for the intercept
+  X <- cbind(1, inputData[, -1]) 
+  sampleData <- as.matrix(cbind(inputData[, 1], X))
   
   #Create an empty array to store results
   bootResults <- array(dim = c(nBoot, ncol(X))) 
 
-  #Use apply to apply to bootResults matrix
-  bootResults <- sapply(1:nBoot, bootLM, inputData = scaleData)
+  #Use sapply to apply bootLM to bootResults matrix
+  bootResults <- sapply(1:nBoot, bootLM, inputData = sampleData)
   
   #colnames(bootResults) <- c("Intercept", names(inputData[-1]))
-  t(as.matrix(bootResults))
+  bootResults <- t(as.matrix(bootResults))
+  
+  #Calcluate confidence intervals
+  ciMatrix <- matrix(NA, nrow = ncol(X), ncol = 2)
+  for(i in 1:ncol(X)){
+    ciMatrix[i, ] <- quantile(bootResults[,i], probs = c(0.025, 0.975))
+  }
+  colnames(ciMatrix) <- c("2.5%", "97.5%")
+  rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
+  
+  return(list(BootResults = bootResults,
+              ConfidenceIntervals = ciMatrix))
 }
-
-#set.seed(1234)
-#lmBoot_2(testData, 5)
-#set.seed(1234)
-#lmBoot_3(testData, 5)
-
-set.seed(1234)
-system.time(lmBoot_3(testData, 100000))     #user  system elapsed 
-                                            #5.346   0.138   5.510  
-
+                                            
 # Parallelisation: --------------------------------------------------------------
 #install.packages(doParallel)
 library(doParallel)
-
 lmBoot_4 <- function(inputData, nBoot){
-  X <- cbind(1, scale(inputData[, -1], scale = F)) 
-  Y <- scale(inputData[, 1], scale = F)            
-  scaleData <- as.matrix(cbind(Y, X))
+  X <- cbind(1, inputData[, -1]) 
+  sampleData <- as.matrix(cbind(inputData[, 1] , X))
   
   nCores <- detectCores()
   myClust <- makeCluster(nCores - 1, type = "PSOCK")
   registerDoParallel(myClust)
   
   bootResults <- array(dim = c(nBoot, ncol(X)))
-  bootResults <- parLapply(myClust, 1:nBoot, bootLM, inputData = scaleData)
+  bootResults <- parSapply(myClust, 1:nBoot, bootLM, inputData = sampleData)
   
   #bootResults <- plyr::ldply(bootResults)
   stopCluster(myClust)
-  return(t(bootResults))
+  bootResults <- t(bootResults)
+  
+  #Confidence intervals
+  ciMatrix <- matrix(NA, nrow = ncol(X), ncol = 2)
+  for(i in 1:ncol(X)){
+    ciMatrix[i, ] <- quantile(bootResults[,i], probs = c(0.025, 0.975))
+  }
+  colnames(ciMatrix) <- c("2.5%", "97.5%")
+  rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
+  
+  return(list(BootResults = bootResults,
+              ConfidenceIntervals = ciMatrix))
   
 }
 
-#foreach(i = 1:1000) %do% bootLM(i, contrivedData) (?)
+# Testing Output and Timing -----------------------------------------------
+fitData <- read.csv("data/fitness.csv")
 
+#Testing datasets with response as the first variable and covariates of interest after
+library(dplyr)
+testData <- fitData[, c(3, 1, 2)]
+testData2 <- fitData %>%
+  select(Oxygen, everything())
+
+#Carls original function
+x <- fitData$Oxygen
+y <- fitData$Age
+system.time(lmBoot(data.frame(x, y), 10000))
+
+#Imporved function
 set.seed(1234)
-lmBoot_2(testData, 5)
+lmBoot_3(testData, 5)
+system.time(lmBoot_3(testData, 100000)) 
+
+#Parallised function
 set.seed(1234, "L'Ecuyer") #Add "L'Ecuyer" to make it reproduceable
 lmBoot_4(testData, 5)
-
-set.seed(1234)
 system.time(lmBoot_4(testData, 100000)) 
+
+# System.Time Results -----------------------------------------------------
+#THIS DOESN't WORK
+# timingMatrix <- matrix(NA, nrow = 5, ncol = 3)
+# for(i in 1:5){
+#   timingMatrix[i, ] <- c(system.time(lmBoot(data.frame(x, y), 10)),
+#                           system.time(lmBoot_3(testData, 10)), 
+#                           system.time(lmBoot_3(testData, 10)))  
+# }
 
 # Profiling ---------------------------------------------------------------
 install.packages("profvis")
