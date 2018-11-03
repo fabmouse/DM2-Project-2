@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction 
 
-Bootstrapping is an area of statistics that is usually implemented using simple Monte Carlo simulations whereby a certain calculation is repeated a large number of times with random sampling (ref?). Repeating calculations a large number of times, say 1,000,000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
+Bootstrapping is an area of statistics that is usually implemented using simple Monte Carlo simulations whereby a certain calculation is repeated a large number of times with random sampling. Repeating calculations a large number of times, say 1,000,000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
 
 This is project aimed to improve and produce two fast and efficient bootstrap functions using R 3.5.1 (R, 2018) and SAS 9.4 (SAS Institute, Cary NC).
 
@@ -76,6 +76,9 @@ knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime (in seconds) o
              col.names = c("Samples", "lmBoot", "lmBoot Improved", "lmBoot Parallised"))
 
 ```
+Original boot fucntion (lmBoot) run speed for 100,000 samples = 127.289 secs
+Final boot function (lmBoot_4) run speed for 100,000 samples = 0.37 secs
+Overall speed increase was seen to be 126.919 secs. 
 
 ### *Microbenchmark*
 
@@ -138,9 +141,8 @@ knitr::kable(ciMatrix, digits = 3, caption = "95% Confidence Intervals",
              col.names = c("2.5%", "97.5%"))
 ```
 5. Interpretation of the Confidence Intervals of parameters estimates are as follows,
-The Confidence Intervals of Age and Run time seem to have no skewness and may even have normality. CI's of weights, Run time and Run pulse are right-skewed whereas the CI's of Rest pulse and Max pulse are left-skewed. All the CI's are distributed unimodally. 
+The Confidence Intervals of Age and Run time seem to have no skewness and may possibly even have normality.CI's of weights, Run time and Run pulse are right-skewed whereas the CI's of Rest pulse and Max pulse are left-skewed. All the CI's have observed to be distributed unimodally.
 ###tell me more stuff you want me to interpret
-
 
 
 \pagebreak 
