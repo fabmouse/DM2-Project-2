@@ -252,6 +252,24 @@ Samples & lmBoot & lmBoot Improved & lmBoot Parallised\tabularnewline
 
 \subsubsection{\texorpdfstring{\emph{Microbenchmark}}{Microbenchmark}}\label{microbenchmark}
 
+\begin{longtable}[]{@{}lll@{}}
+\caption{Microbenchmark comparison between lmBoot\_par and
+Boot}\tabularnewline
+\toprule
+Samples & lmBoot\_par & Boot\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+Samples & lmBoot\_par & Boot\tabularnewline
+\midrule
+\endhead
+10 & 998.0118 & 24.1424\tabularnewline
+100 & 1003.773 & 134.7217\tabularnewline
+1000 & 1029.438 & 1273.774\tabularnewline
+10000 & 1315.602 & 11750.07\tabularnewline
+\bottomrule
+\end{longtable}
+
 \subsubsection{\texorpdfstring{\emph{Example analysis using
 lmBoot}}{Example analysis using lmBoot}}\label{example-analysis-using-lmboot}
 
@@ -294,13 +312,13 @@ lmBoot}}{Example analysis using lmBoot}}\label{example-analysis-using-lmboot}
 & 2.5\% & 97.5\%\tabularnewline
 \midrule
 \endhead
-Intercept & 79.007 & 121.155\tabularnewline
-Age & -0.429 & -0.004\tabularnewline
-Weight & -0.161 & 0.063\tabularnewline
-RunTime & -3.275 & -1.874\tabularnewline
-RestPulse & -0.171 & 0.103\tabularnewline
-RunPulse & -0.559 & -0.077\tabularnewline
-MaxPulse & -0.045 & 0.526\tabularnewline
+Intercept & 78.435 & 121.357\tabularnewline
+Age & -0.436 & -0.001\tabularnewline
+Weight & -0.163 & 0.064\tabularnewline
+RunTime & -3.289 & -1.852\tabularnewline
+RestPulse & -0.174 & 0.104\tabularnewline
+RunPulse & -0.560 & -0.077\tabularnewline
+MaxPulse & -0.037 & 0.524\tabularnewline
 \bottomrule
 \end{longtable}
 

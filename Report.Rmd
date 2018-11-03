@@ -3,9 +3,10 @@ title: "Report"
 author: "Drunken Master 2"
 date: "Due 5 November 2018"
 output:
+  word_document: default
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 toc: yes
 ---
 
@@ -79,12 +80,20 @@ knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime (in seconds) o
 
 ### *Microbenchmark*
 
-```{r rmicro, echo = FALSE}
 
+```{r rmicro, echo = FALSE}
+bootTiming <- matrix(c("10","998.0118", "24.1424",  
+                      "100", "1003.773", "134.7217", 
+                      "1000", "1029.438", "1273.774",
+                      "10000", "1315.602", "11750.07"), byrow = TRUE, ncol = 3)
+knitr::kable(bootTiming, digits = 4, caption = "Microbenchmark comparison between lmBoot_par and Boot", 
+             col.names = c("Samples", "lmBoot_par", "Boot"))
 
 ```
 
 ### *Example analysis using lmBoot*
+
+
 
 ```{r rcode, echo = FALSE, fig.width = 10, fig.height = 12, fig.cap="\\label{fig:rcode} Bootstrap Distributions of Parameter Estimates" }
 
