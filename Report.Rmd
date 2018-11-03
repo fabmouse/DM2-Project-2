@@ -79,7 +79,7 @@ knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime (in seconds) o
 ```
 
 ### *Microbenchmark*
-
+From the table below, we could find that when the number of bootstrapping is low, the boot function performs better than lmBoot_par function. With increasing number of bootstrapping, lmBoot_par function performs much better than boot function. We could conclude that vectorization will imrpove function performance especially for compute-intensive problems.
 
 ```{r rmicro, echo = FALSE}
 bootTiming <- matrix(c("10","998.0118", "24.1424",  
