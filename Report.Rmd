@@ -131,6 +131,11 @@ testResults <- lmBoot_4(testData, 10000)
 knitr::kable(testResults$ConfidenceIntervals, digits = 3, caption = "95% Confidence Intervals", 
              col.names = c("2.5%", "97.5%"))
 ```
+5. Interpretation of the Confidence Intervals of parameters estimates are as follows,
+The Confidence Intervals of Age and Run time seem to have no skewness and may even have normality. CI's of weights, Run time and Run pulse are right-skewed whereas the CI's of Rest pulse and Max pulse are left-skewed. All the CI's are distributed unimodally. 
+###tell me more stuff you want me to interpret
+
+
 
 \pagebreak 
 
