@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Bootstrapping is an area of statistics that is usually implemented using simple Monte Carlo simulations whereby a certain calculation is repeated a large number of times with random sampling (ref?). Repeating calculations a large number of times, say 1,000,000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
 
-This project aimed to improve and produce two fast and efficient bootstrap functions using R 3.5.1 (R, 2018) and SAS 9.4 (SAS Institute, Cary NC).
+This is project aimed to improve and produce two fast and efficient bootstrap functions using R 3.5.1 (R, 2018) and SAS 9.4 (SAS Institute, Cary NC).
 
 ```{r load}
 fitData <- read.csv("data/fitness.csv")
@@ -79,7 +79,8 @@ knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime (in seconds) o
 
 ### *Example analysis using lmBoot*
 
-```{r rcode, echo = FALSE}
+```{r rcode, echo = FALSE, fig.width = 10, fig.height = 12, fig.cap="\\label{fig:rcode} Bootstrap Distributions of Parameter Estimates" }
+
 library(doParallel)
 bootLM <- function(inputData, index){
   bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
@@ -90,7 +91,7 @@ bootLM <- function(inputData, index){
 }
 lmBoot_4 <- function(inputData, nBoot){
   X <- cbind(1, inputData[, -1]) 
-  sampleData <- as.matrix(cbind(inputData[, 1] , X))
+  sampleData <- as.matrix(cbind(inputData[, 1], X))
   
   nCores <- detectCores()
   myClust <- makeCluster(nCores - 1, type = "PSOCK")
@@ -103,13 +104,19 @@ lmBoot_4 <- function(inputData, nBoot){
   stopCluster(myClust)
   bootResults <- t(bootResults)
   
+  #Plot the distributions for each parameter
+  for(i in 1:ncol(X)){
+    hist(bootResults[, i], breaks = 50, 
+         main = "", xlab = paste("Parameter Esimates of ", names(X[i])))
+  }
+  
   #Confidence intervals
   ciMatrix <- matrix(NA, nrow = ncol(X), ncol = 2)
   for(i in 1:ncol(X)){
     ciMatrix[i, ] <- quantile(bootResults[,i], probs = c(0.025, 0.975))
   }
   colnames(ciMatrix) <- c("2.5%", "97.5%")
-  rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
+  rownames(ciMatrix) <- c("Intercept", names(inputData[-1]))
   
   return(list(BootResults = bootResults,
               ConfidenceIntervals = ciMatrix))
@@ -117,10 +124,9 @@ lmBoot_4 <- function(inputData, nBoot){
 }
 
 library(dplyr)
+par(mfrow = c(4,2))
 testData <- fitData %>% select(Oxygen, everything())
-testResults <- lmBoot_4(testData, 100)
-
-
+testResults <- lmBoot_4(testData, 10000)
 
 knitr::kable(testResults$ConfidenceIntervals, digits = 3, caption = "95% Confidence Intervals", 
              col.names = c("2.5%", "97.5%"))
