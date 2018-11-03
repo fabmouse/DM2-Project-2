@@ -12,14 +12,7 @@ bootmodel <- lm (Oxygen~., data = fitness)
 
 bootinterval <- function(n){
   result <- boot(data = fitness, statistic = bst, R = n, formula = bootmodel)
-  a<-boot.ci(result, type = "basic", index = 1)
-  b<-boot.ci(result, type = "basic", index = 2)
-  c<-boot.ci(result, type = "basic", index = 3)
-  d<-boot.ci(result, type = "basic", index = 4)
-  e<-boot.ci(result, type = "basic", index = 5)
-  f<-boot.ci(result, type = "basic", index = 6)
-  g<-boot.ci(result, type = "basic", index = 7)
-  return(c(a,b,c,d,e,f,g))
+  return(result)
 }
 
 boot_microbenchmark <- microbenchmark(bootinterval, times = 10L)
