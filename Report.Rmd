@@ -3,9 +3,9 @@ title: "Report"
 author: "Drunken Master 2"
 date: "Due 5 November 2018"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 toc: yes
 ---
 
@@ -77,6 +77,12 @@ knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime (in seconds) o
 
 ```
 
+### *Microbenchmark*
+
+```{r rmicro, echo = FALSE}
+
+
+```
 
 ### *Example analysis using lmBoot*
 
