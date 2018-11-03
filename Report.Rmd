@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Bootstrapping is an area of statistics that is usually implemented using simple Monte Carlo simulations whereby a certain calculation is repeated a large number of times with random sampling (ref?). Repeating calculations a large number of times, say 1,000,000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
 
-This project aimed to improve and produce two fast and efficient bootstrap functions using R 3.5.1 (R, 2018) and SAS 9.4 (SAS Institute, Cary NC).
+This is project aimed to improve and produce two fast and efficient bootstrap functions using R 3.5.1 (R, 2018) and SAS 9.4 (SAS Institute, Cary NC).
 
 ```{r load}
 fitData <- read.csv("data/fitness.csv")
