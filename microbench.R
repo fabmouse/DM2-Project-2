@@ -16,4 +16,4 @@ bst <- function(formula, data, indices){
   return(coef(fit)) 
 }
 bootmodel = lm(Oxygen ~.,data = fitData)
-boot(data = fitData,statistic = bst. R = 1000,formula = bootmodel)
+boot(data = fitData,statistic = bst, R = 1000,formula = bootmodel)
