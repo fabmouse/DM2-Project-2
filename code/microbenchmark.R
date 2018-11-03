@@ -1,6 +1,12 @@
-library(boot)
 library(microbenchmark)
+library(boot)
+#source("lmboot_attempt2.R")
 set.seed(5763)
+
+
+microbenchmark(lmBoot_4(fitData,10000),times = 10L)
+
+
 
 bst <- function(formula, data, indices){
   d <- data[indices, ]
@@ -8,8 +14,10 @@ bst <- function(formula, data, indices){
   return(coef(fit)) 
 }
 
-boot_microbenchmark <- microbenchmark(boot(data = fitData, statistic = bst, R = 10, formula = Oxygen~.))
-lmboot_4_microbenchmark <- microbenchmark(lmBoot_4(fitData,10))
 
-print(boot_microbenchmark)
-print(lmboot_4_microbenchmark)
+
+
+microbenchmark(boot(data = fitData, statistic = bst, R =10000, formula = Oxygen~.),times = 10L)
+
+
+
