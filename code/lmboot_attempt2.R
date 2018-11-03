@@ -1,11 +1,3 @@
-#WHAT TO DO:
-# 1. Modify the the R bootstrapping code to be more efficient. 
-#    It should also be parallelised at some level. 
-#    You should profile both the original and final versions as well as determining the overall speed increase. 
-#    Include the profile file in your repository.
-#2. Your new bootstrap function in R should be altered to accept an arbitrary number of covariates.
-#3. Micro-benchmark (package microbenchmark) your R bootstrap against bootstraps via the package boot.
-
 # ORIGIONAL LMBOOT FUNCTION (CARL) ----------------------------------------
 lmBoot <- function(inputData, nBoot){
   for(i in 1:nBoot){
@@ -61,6 +53,12 @@ lmBoot_3 <- function(inputData, nBoot){
   #colnames(bootResults) <- c("Intercept", names(inputData[-1]))
   bootResults <- t(as.matrix(bootResults))
   
+  #Plot the distributions for each parameter
+  for(i in 1:ncol(X)){
+    hist(bootResults[, i], breaks = 50, 
+         main = "", xlab = paste("Parameter Esimates of ", names(X[i])))
+  }
+  
   #Calcluate confidence intervals
   ciMatrix <- matrix(NA, nrow = ncol(X), ncol = 2)
   for(i in 1:ncol(X)){
@@ -78,7 +76,7 @@ lmBoot_3 <- function(inputData, nBoot){
 library(doParallel)
 lmBoot_4 <- function(inputData, nBoot){
   X <- cbind(1, inputData[, -1]) 
-  sampleData <- as.matrix(cbind(inputData[, 1] , X))
+  sampleData <- as.matrix(cbind(inputData[, 1], X))
   
   nCores <- detectCores()
   myClust <- makeCluster(nCores - 1, type = "PSOCK")
@@ -90,6 +88,12 @@ lmBoot_4 <- function(inputData, nBoot){
   #bootResults <- plyr::ldply(bootResults)
   stopCluster(myClust)
   bootResults <- t(bootResults)
+  
+  #Plot the distributions for each parameter
+  for(i in 1:ncol(X)){
+    hist(bootResults[, i], breaks = 50, 
+         main = "", xlab = paste("Parameter Esimates of ", names(X[i])))
+  }
   
   #Confidence intervals
   ciMatrix <- matrix(NA, nrow = ncol(X), ncol = 2)
@@ -128,67 +132,11 @@ set.seed(1234, "L'Ecuyer") #Add "L'Ecuyer" to make it reproduceable
 lmBoot_4(testData, 5)
 system.time(lmBoot_4(testData, 100000)) 
 
-# System.Time Results -----------------------------------------------------
-#THIS DOESN't WORK
-# timingMatrix <- matrix(NA, nrow = 5, ncol = 3)
-# for(i in 1:5){
-#   timingMatrix[i, ] <- c(system.time(lmBoot(data.frame(x, y), 10)),
-#                           system.time(lmBoot_3(testData, 10)), 
-#                           system.time(lmBoot_3(testData, 10)))  
-# }
-
 # Profiling ---------------------------------------------------------------
 install.packages("profvis")
 library(profvis)
 
-profvis({lmBoot_2(testData, 1000)})
+profvis({lmBoot(testData, 1000)})
 profvis({lmBoot_3(testData, 1000)})
 profvis({lmBoot_4(testData, 1000)})
-
-# RUI WORK: ---------------------------------------------------------------------
-# Add multiple covariates
-# Do some more optimisations (do the resampling in parallel or only once)
-# You can still do sime changes to the bootLM output so that you can get rid of the transpose and plyr::ldply(bootResults)
-
-bootLM <- function(inputData, index){
-  bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
-  Xmat <- bootData[,1:2]
-  Ymat <- bootData[,3]
-  
-  beta <- solve(t(Xmat)%*%Xmat)%*%t(Xmat)%*%Ymat
-  return(t(beta))
-}
-
-bootLM(fitData, 10)
-
-badBootBrother2 <- function(inputData, nBoot){
-  X <- cbind(1, inputData$x)
-  dataSet <- as.matrix(cbind(X, inputData$y))
-  
-  nCores <- detectCores()
-  myClust <- makeCluster(nCores - 1, type = "PSOCK")
-  registerDoParallel(myClust)
-  
-  bootResults <- array(dim=c(nBoot, 2))
-  bootResults <- parLapply(myClust, 1:nBoot, bootLM, inputData = dataSet)
-  
-  bootResults <- plyr::ldply(bootResults)
-  stopCluster(myClust)
-  return(bootResults)
-  
-}
-
-# Testing
-x <- fitness$Weight
-y <- fitness$Age
-test.data <- data.frame(x, y)
-badBootBrother2(test.data, 10)
-
-
-
-
-
-
-
-
 
