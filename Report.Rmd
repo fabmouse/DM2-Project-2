@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction 
 
-Bootstrapping is an area of ststistics that is usually implimented using simple Monte Carlo simulations whereby a certain calculation is repeated a large number of times with random sampling (ref?). Repeating calculations a large number of times, say 1,000,000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
+Bootstrapping is an area of statistics that is usually implemented using simple Monte Carlo simulations whereby a certain calculation is repeated a large number of times with random sampling (ref?). Repeating calculations a large number of times, say 1,000,000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
 
 This project aimed to improve and produce two fast and efficient bootstrap functions using R 3.5.1 (R, 2018) and SAS 9.4 (SAS Institute, Cary NC).
 
@@ -29,7 +29,7 @@ from 31 men:
 • RestPulse: heart rate while resting
 • RunPulse: heart rate at end of run
 • MaxPulse: maximum heart rate recorded while running
-All alnalysis in the following report were carried out using R 3.5.1 software.
+All alnalyses in the following report were carried out using R 3.5.1 software.
 
 \pagebreak
 
@@ -41,7 +41,7 @@ The function *lmBoot* (Appendix A.###) uses bootstrap sampling methods to calcul
 
 The function takes in two arguments:
 
-- inputData: the dataset that will be used to for sampling, where the response variable is in the first column and the remainder of the columns contain the covariates of interest.
+- inputData: the dataset that will be used for sampling, where the response variable is in the first column and the remainder of the columns contain the covariates of interest.
 - nBoot: The number of bootstrap samples to compute.
 
 The function outputs:
@@ -50,19 +50,19 @@ The function outputs:
 - ConfidenceIntervals: A matrix containing 95% confidence intervals for each parameter estimate.
  
 ### *Changes made to lmBoot*
-1. The original lmBoot function only produced bootstrap saples for one covariate. This was change so that lmBoot_2 produces bootstrap estimates for a multiple number of covariates and calculates ocnfidence intervals for each parameter estimate. 
+1. The original lmBoot function only produced bootstrap samples for one covariate. This was changed so that lmBoot_2 produces bootstrap estimates for a multiple number of covariates and calculates confidence intervals for each parameter estimate. 
 
-2. The use of the *lm* function was removed and the beta coefficients rather calculated using matrix clculations. 
+2. The use of the *lm* function was removed and the beta coefficients were calculated using matrix calculations instead. 
 
 $$
 \beta = (X^TX)^{-1}X^TY
 $$
 
-3. *forloops* are known to be relatively slow and inefficient. Therefore, the *forloop* was replaced using *sapply* which applies a function to each element of a matrix. The function called *bootLM* was written to carry out the bootstrap algorithm. 
+3. *forloops* are relatively slow and inefficient. Therefore, the *forloop* was replaced using *sapply* which applies a function to each element of a matrix. The function called *bootLM* was written to carry out the bootstrap algorithm. 
 
-4. Parallisation
+4. Parallelisation
 
-Table ### illustrates differences in runtime for three different versions of the lmBoot function; the original, an improved version and a parallised version. Each function was timed on howlong it took to resaample 100, 1000, 10000 and 100000 samples.
+Table ### illustrates differences in runtime for three different versions of the lmBoot function; the original, an improved version and a parallelised version. Each function was timed on how long it took to resample 100, 1000, 10000 and 100000 samples.
 
 ```{r rSpeed, echo = FALSE}
 sasTiming <- matrix(c("100", 0.079, 0.006, 0.020,  
@@ -144,7 +144,7 @@ The program then outputs:
 - ResultHolder: A SAS dataset with the number of rows equivalent to the NumberOfLoops argument and two columns; RandomIntercept and RandomSlope. 
 - output.rtf: An RTF file containing 95% confidence intervals for the mean, the mean estimate for each parameter and plots of the distributions of the bootstrap parameters.
  
-The function makes use of
+The function makes use of:
 
 - MACRO statements to create a flexible program with input arguments.
 - PROC SURVEYSELECT which allows the use of random sampling to generate random samples from a selected or inputed dataset.
@@ -154,16 +154,16 @@ The function makes use of
 
 The changes made to SASBoot were motivated, in part, by the work of Cassel (2018) in his paper "Don't Be Loopy: Re-Sampling and Simulation the SAS® Way".
 
-1. The %do% loop was first removed and the following simple code was added to PROC SURVEYSELECT:  
+1. The %do% loop was first removed and the following code was added to PROC SURVEYSELECT:  
 *samprate = 1*  
 *outhits*  
 *rep = &NumberOfLoops*    
 
-which ensures that NumberOfLoops samples of the same size as the origional data set are produced recorded.
+which ensures that NumberOfLoops samples of the same size as the original data set are produced and recorded.
 
-2. A linear regression using PROC REG was improved by introducing the by-variable REPLICATE. This varibale is automatically produced from PROC SURVEYSELECT to keep track of each new bootstrap sample, then ensuring that the linear regression is run on each sample. Thus, only the Result Holder Dataset was necessary, and there was no need to generate the Temp Dataset.
+2. A linear regression using PROC REG was improved by introducing the by-variable REPLICATE. This variable is automatically produced from PROC SURVEYSELECT to keep track of each new bootstrap sample, and ensures that the linear regression is run on each sample. Thus, only the Result Holder Dataset was necessary, and there was no need to generate the Temp Dataset.
 
-3. The SASFILE statement was included to upload the dataset to RAM rather than the hard drive before any sampling was carried out so that the dataset does not have to be readin every time a resample needs to be done.
+3. The SASFILE statement was included to upload the dataset to RAM rather than the hard drive before any sampling was carried out so that the dataset does not have to be read-in every time a resample is done.
 
 (4. Replaced noprint and ODS listing close - still working on this)
 
