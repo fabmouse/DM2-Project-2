@@ -5,6 +5,7 @@ date: "Due 5 November 2018"
 output:
   html_document:
     df_print: paged
+  pdf_document: default
 toc: yes
 ---
 
@@ -76,6 +77,12 @@ knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime (in seconds) o
 
 ```
 
+### *Microbenchmark*
+
+```{r rmicro, echo = FALSE}
+
+
+```
 
 ### *Example analysis using lmBoot*
 
@@ -104,31 +111,30 @@ lmBoot_4 <- function(inputData, nBoot){
   stopCluster(myClust)
   bootResults <- t(bootResults)
   
-  #Plot the distributions for each parameter
-  for(i in 1:ncol(X)){
-    hist(bootResults[, i], breaks = 50, 
-         main = "", xlab = paste("Parameter Esimates of ", names(X[i])))
-  }
-  
-  #Confidence intervals
-  ciMatrix <- matrix(NA, nrow = ncol(X), ncol = 2)
-  for(i in 1:ncol(X)){
-    ciMatrix[i, ] <- quantile(bootResults[,i], probs = c(0.025, 0.975))
-  }
-  colnames(ciMatrix) <- c("2.5%", "97.5%")
-  rownames(ciMatrix) <- c("Intercept", names(inputData[-1]))
-  
-  return(list(BootResults = bootResults,
-              ConfidenceIntervals = ciMatrix))
-  
+  return(bootResults)
 }
 
 library(dplyr)
 par(mfrow = c(4,2))
 testData <- fitData %>% select(Oxygen, everything())
+set.seed(5763)
 testResults <- lmBoot_4(testData, 10000)
 
-knitr::kable(testResults$ConfidenceIntervals, digits = 3, caption = "95% Confidence Intervals", 
+#Plot the distributions for each parameter
+  for(i in 1:ncol(testResults)){
+    hist(testResults[, i], breaks = 50, 
+         main = "", xlab = paste("Parameter Esimates of ", names(testResults[i])))
+  }
+  
+  #Confidence intervals
+  ciMatrix <- matrix(NA, nrow = ncol(testResults), ncol = 2)
+  for(i in 1:ncol(testResults)){
+    ciMatrix[i, ] <- quantile(testResults[,i], probs = c(0.025, 0.975))
+  }
+  colnames(ciMatrix) <- c("2.5%", "97.5%")
+  rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
+
+knitr::kable(ciMatrix, digits = 3, caption = "95% Confidence Intervals", 
              col.names = c("2.5%", "97.5%"))
 ```
 5. Interpretation of the Confidence Intervals of parameters estimates are as follows,
