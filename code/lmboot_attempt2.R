@@ -24,21 +24,24 @@ bootLM <- function(inputData, index){
   beta <- solve(t(Xmat)%*%Xmat)%*%t(Xmat)%*%Ymat
   return(t(beta))
 }
+
+#Purpose: Generate a large number of linear regression beta coefficients using
+#         bootstrap methods.
+#Inputs: inputData: a dataframe containing the response variable, which must be 
+#        in the first column of the dataframe, and the covariates of interest
+#        nBoot: the number of bootstrap samples to generate.
+#Outputs: BootResults: An arraycontaing the parameter estimates of each 
+#         each bootstrap sample.
+#         ConfidenceIntervals: A matrix containing 95% confidence intervals 
+#         for each parameter.
+
+#Changes: 1. Allows for multiple covariates
+#         2. Calculates the Beta coefficients using matrix notaion rather than lm
+#         3. Uses a small function to carry out the bootstrap algorithm
+#         4. Uses sapply instead of a for loop
+
 lmBoot_3 <- function(inputData, nBoot){
-  #Purpose: Generate a large number of linear regression beta coefficients using
-  #         bootstrap methods.
-  #Inputs: inputData: a dataframe containing the response variable, which must be 
-  #        in the first column of the dataframe, and the covariates of interest
-  #        nBoot: the number of bootstrap samples to generate.
-  #Outputs: BootResults: An arraycontaing the parameter estimates of each 
-  #         each bootstrap sample.
-  #         ConfidenceIntervals: A matrix containing 95% confidence intervals 
-  #         for each parameter.
-  
-  #Changes: 1. Allows for multiple covariates
-  #         2. Calculates the Beta coefficients using matrix notaion rather than lm
-  #         3. Uses a small function to carry out the bootstrap algorithm
-  #         4. Uses sapply instead of a for loop
+
   
   #Create a sample dataset with a column of 1s for the intercept
   X <- cbind(1, inputData[, -1]) 
@@ -123,20 +126,20 @@ y <- fitData$Age
 system.time(lmBoot(data.frame(x, y), 10000))
 
 #Imporved function
-set.seed(1234)
-lmBoot_3(testData, 5)
-system.time(lmBoot_3(testData, 100000)) 
+# set.seed(1234)
+# lmBoot_3(testData, 5)
+# system.time(lmBoot_3(testData, 100000)) 
 
 #Parallised function
-set.seed(1234, "L'Ecuyer") #Add "L'Ecuyer" to make it reproduceable
-lmBoot_4(testData, 5)
-system.time(lmBoot_4(testData, 100000)) 
+# set.seed(1234, "L'Ecuyer") #Add "L'Ecuyer" to make it reproduceable
+# lmBoot_4(testData, 5)
+# system.time(lmBoot_4(testData, 100000)) 
 
 # Profiling ---------------------------------------------------------------
-install.packages("profvis")
+# install.packages("profvis")
 library(profvis)
 
-profvis({lmBoot(testData, 1000)})
-profvis({lmBoot_3(testData, 1000)})
-profvis({lmBoot_4(testData, 1000)})
+profvis({lmBoot(testData, 10000)})
+profvis({lmBoot_3(testData, 10000)})
+profvis({lmBoot_4(testData, 10000)})
 
