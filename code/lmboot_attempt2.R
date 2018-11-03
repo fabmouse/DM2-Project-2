@@ -97,7 +97,7 @@ lmBoot_4 <- function(inputData, nBoot){
     ciMatrix[i, ] <- quantile(bootResults[,i], probs = c(0.025, 0.975))
   }
   colnames(ciMatrix) <- c("2.5%", "97.5%")
-  rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
+  rownames(ciMatrix) <- c("Intercept", names(inputData[-1]))
   
   return(list(BootResults = bootResults,
               ConfidenceIntervals = ciMatrix))
