@@ -2,8 +2,10 @@
 title: "Report"
 author: "Drunken Master 2"
 date: "Due 5 November 2018"
-output: pdf_document
-toc: TRUE
+output:
+  html_document:
+    df_print: paged
+toc: yes
 ---
 
 ```{r setup, include=FALSE}
