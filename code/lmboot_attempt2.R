@@ -1,11 +1,3 @@
-#WHAT TO DO:
-# 1. Modify the the R bootstrapping code to be more efficient. 
-#    It should also be parallelised at some level. 
-#    You should profile both the original and final versions as well as determining the overall speed increase. 
-#    Include the profile file in your repository.
-#2. Your new bootstrap function in R should be altered to accept an arbitrary number of covariates.
-#3. Micro-benchmark (package microbenchmark) your R bootstrap against bootstraps via the package boot.
-
 # ORIGIONAL LMBOOT FUNCTION (CARL) ----------------------------------------
 lmBoot <- function(inputData, nBoot){
   for(i in 1:nBoot){
