@@ -8,18 +8,8 @@ bst <- function(formula, data, indices){
   return(coef(fit)) 
 }
 
-bootmodel <- lm (Oxygen~., data = fitness)
-
-bootinterval <- function(n){
-  result <- boot(data = fitness, statistic = bst, R = n, formula = bootmodel)
-  return(result)
-}
-
-boot_microbenchmark <- microbenchmark(bootinterval, times = 10L)
-lmboot_4_microbenchmark <- microbenchmark(lmBoot_4, times = 10L)
+boot_microbenchmark <- microbenchmark(boot(data = fitData, statistic = bst, R = 10, formula = Oxygen~.))
+lmboot_4_microbenchmark <- microbenchmark(lmBoot_4(fitData,10))
 
 print(boot_microbenchmark)
 print(lmboot_4_microbenchmark)
-
-boxplot(boot_microbenchmark)
-boxplot(lmboot_4_microbenchmark)
