@@ -3,10 +3,10 @@ title: "Report"
 author: "Drunken Master 2"
 date: "Due 5 November 2018"
 output:
-  pdf_document: default
-  word_document: default
   html_document:
     df_print: paged
+  word_document: default
+  pdf_document: default
 toc: yes
 ---
 
@@ -198,18 +198,15 @@ which ensures that NumberOfLoops samples of the same size as the original data s
 (4. Replaced noprint and ODS listing close - still working on this)
 
 
-The program was run six times and Table ### displays the runtime (in seconds) for 1000 loops. The code used to measure the run time of the SASBoot program can be found in Appendix A.### (H, 2012).
+The program was run over increasingly large numbers of replications and Table ### displays the runtime (in seconds) for each function. The code used to measure the run time of the SASBoot program can be found in Appendix A.### (H, 2012).
 
 ```{r sasSpeed, echo = FALSE}
-sasTiming <- matrix(c(183.3600, 0.2970, 6.0680, 
-                      189.9730, 6.0870, 6.0870,
-                      195.4200, 0.4220, 6.0640,
-                      192.8350, 0.3130, 6.0410,
-                      192.7860, 0.2960, 5.9410,
-                      193.5580, 0.3140, 6.0620), byrow = TRUE, ncol = 3)
+sasTiming <- matrix(c('100', 17.8680, 0.2350, 4.8280,                     		                           '1000', 169.4450, 0.2650, 5.1590,
+                      '10000', "1732.0520", 0.7140, 6.5350,
+                      '100000', '127.289', 5.2200, 11.3810), byrow = TRUE, 
+                        ncol = 4)
 knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime of SASBoot", 
-             col.names = c("RegBoot", " SASBoot ", "SASBoot (with rtf output)"))
-
+             col.names = c("Samples", "RegBoot", "SASBoot", "SASBoot (with rtf  output)"))
 ```
 
 ### *Example analysis using SASBoot*
@@ -226,14 +223,15 @@ The confidence interval for the intercept term (36.4824, 73.1590) does not conta
 
 \  
 
-![Figure 1](C:\Users\p-mcl\OneDrive\Documents\Masters\MT5763\Assignment 2\DM2-Project-2\SAS intercept distribution.png){ width=75% }
+![Figure 1:The distribution of the intercept parameter estimates](C:\Users\p-mcl\OneDrive\Documents\Masters\MT5763\Assignment 2\DM2-Project-2\SAS intercept distribution.png){ width=75% }
 
 \  
+
 The confidence interval for Weight (-0.32842, 0.13533) does contain 0 which suggests that the estimator is signicant at the 5% level. Figure 2 displays a histogram of the parameter estimates for Weight.
 
 \  
 
-![Figure 2](C:\Users\p-mcl\OneDrive\Documents\Masters\MT5763\Assignment 2\DM2-Project-2\SAS weight distribution.png){ width=75% }
+![Figure 2: The distribution of the parameter estimates for Weight](C:\Users\p-mcl\OneDrive\Documents\Masters\MT5763\Assignment 2\DM2-Project-2\SAS weight distribution.png){ width=75% }
 
 \  
 \pagebreak 
