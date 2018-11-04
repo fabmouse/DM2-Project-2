@@ -215,15 +215,27 @@ knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime of SASBoot",
 ### *Example analysis using SASBoot*
 
 ```{r SAS}
-#Include plots and interpretation
+#Include interpretation
 ```
 
-An example analysis was conducted using the fitness datset. A linear model was set up with Oygen as the response and Weight as the covariate. The bootstrap 95% confidence intervals produced by SASBoot were then used to test the null hypothesis that there is no relationship between Oxygen and Weight, i.e. $\beta_i = 0$. 
+An example analysis was conducted using the fitness data set. A linear model was set up with Oxygen as the response and Weight as the covariate. The bootstrap 95% confidence intervals produced by SASBoot were then used to test the null hypothesis that there is no relationship between Oxygen and Weight, i.e. $\beta_i = 0$. 
 
 If the confidence interval contains 0, one then fails to reject the null hypothesis and if it does not contain 0 one can reject the null hypothesis.
 
-The confidence interval for the intercept term (36.4824, 73.1590) does not contain 0 which suggests that the estimator is not signicant at the 5% level. The confidence interval for the intercept term (-0.32842, 0.13533) does contain 0 which suggests that the estimator is signicant at the 5% level. 
+The confidence interval for the intercept term (36.4824, 73.1590) does not contain 0 which suggests that the estimator is not signicant at the 5% level. A histogram showing the distribution of the intercept parameter estimates is shown in Figure 1.
 
+\  
+
+![Figure 1](C:\Users\p-mcl\OneDrive\Documents\Masters\MT5763\Assignment 2\DM2-Project-2\SAS intercept distribution.png){ width=75% }
+
+\  
+The confidence interval for Weight (-0.32842, 0.13533) does contain 0 which suggests that the estimator is signicant at the 5% level. Figure 2 displays a histogram of the parameter estimates for Weight.
+
+\  
+
+![Figure 2](C:\Users\p-mcl\OneDrive\Documents\Masters\MT5763\Assignment 2\DM2-Project-2\SAS weight distribution.png){ width=75% }
+
+\  
 \pagebreak 
 
 ## References
