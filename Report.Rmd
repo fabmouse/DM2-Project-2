@@ -3,8 +3,6 @@ title: "Constructing Efficient Bootstraps in R and SAS"
 author: "Drunken Master 2"
 date: "Due 5 November 2018"
 output:
-  html_document:
-    df_print: paged
   pdf_document: default
 toc: yes
 ---
