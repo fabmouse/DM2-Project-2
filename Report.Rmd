@@ -68,44 +68,43 @@ $$
 Table 1 illustrates differences in runtime for the three different versions of the *lmBoot* function. Each function was timed on how long it took to resample 100, 1000, 10000, 100000 and 1000000 samples.
 
 ```{r rSpeed, echo = FALSE}
-rTiming <- matrix(c(100, 0.079, 0.025, 1.337,  
-                    1000, 0.941, 0.134, 0.893, 
-                    10000, 8.502, 0.777, 1.148, 
-                    100000, 127.289, 6.604, 3.810, 
-                    1000000, "-", 87.170, 40.9990), byrow = TRUE, ncol = 4)
-knitr::kable(rTiming, digits = 3, caption = "Changes in Runtime (in seconds) of lmBoot", col.names = c("Samples", "lmBoot", "lmBoot Improved", "lmBoot parallelised"))
+rTiming <- matrix(c("100", 0.079, 0.025, 1.337,  
+                    "1000", 0.941, 0.134, 0.893, 
+                    "10000", 8.502, 0.777, 1.148, 
+                    "100000", 127.289, 6.604, 3.810, 
+                    "1000000", "-", 87.170, 40.9990), byrow = TRUE, ncol = 4)
+knitr::kable(rTiming, digits = 3, caption = "Changes in Runtime (in seconds) of lmBoot", col.names = c("Samples", "lmBoot", "lmBoot_imp", "lmBoot_par"))
 ```
 
 ```{r speedPlot, echo = FALSE, echo = FALSE, fig.width = 7, fig.height = 6, fig.cap="\\label{fig:speedPlot} Bar Plot of Execution Time for Three R Bootstrap Functions"}
 speedInc <- c(127.289, 6.604, 3.810)
-barplot(speedInc, names.arg = c("lmBoot", "lmBoot Improved", 
-                                "lmboot Parallelised"), col = "Slateblue", 
-        border = "black", main = "", xlab = "Function", ylab = "Time (ms)",
-        cex.lab = 0.8, las = 1)
+barplot(speedInc, names.arg = c("lmBoot", "lmBoot_imp", "lmBoot_par"), 
+        col = "Slateblue", border = "black", main = "", xlab = "Function", 
+        ylab = "Time (ms)", cex.lab = 0.8, las = 1)
 ```
   
 \pagebreak
         
 Figure \ref{fig:speedPlot} illustrates the increases in execution time based on the time taken for each of the three functions to produce 10000 Bootstrap samples. Each function was also profiled for the execution of 10000 samples, the results for which can be found in Appendix A.4. The *lmBoot* function took 4560ms to execute, the majority of which was taken up by the *lm* function (2380ms) and the *rbind* function (1790ms). The *lmBoot_imp* function took 240ms to execute. The majority of the time was taken up applying the *bootLM* function to create the Bootstrap estimates (230ms), half of which was taken up by calculating the Beta estimates (160ms).  The *lmBoot_par* function took only 110ms to execute. The execution time was split equally between setting up the parallelisation and calculating the Bootstrap parameter estimates.
 
-### *Microbenchmark*
+### *Microbenchmark of Boot and lmBoor_par*
 Table 2 contains the results of microbenchmark comparison between the builtin *Boot* function and the final *lmBoot_par* function. Each function was executed 10 times and the mean time taken to run the function is shown. The microbenchmark was run for 100, 1000, 10000 and 100000 samples. For smaller numbers of samples, less than 1000 samples, the *Boot* function executes faster than the *lmBoot_par* function. However, as the sample size increases *lmBoot_par* performs faster than the *boot* function.
 
 ```{r rmicro, echo = FALSE}
-bootTiming <- matrix(c(100, 922.0006, 198.1029,  
-                       1000, 1306.580, 1822.509, 
-                       10000, 1534.326, 16156.005,
-                       100000, 5.766977, 151.130571), byrow = TRUE, ncol = 3)
+bootTiming <- matrix(c("100", 922.0006, 198.1029,  
+                       "1000", 1306.580, 1822.509, 
+                       "10000", 1534.326, 16156.005,
+                       "100000", 5.766977, 151.130571), byrow = TRUE, ncol = 3)
 knitr::kable(bootTiming, digits = 4, caption = "Microbenchmark comparison (in milliseconds) between lmBoot_par and Boot", 
              col.names = c("Samples", "lmBoot_par", "Boot"))
 
 ```
 
-### *Example analysis using lmBoot*
+### *Example analysis using lmBoot_par*
 
 An example analysis was conducted using the fitness data set. A linear model was set up with Oxygen as the response and the remaining six variables as the predictors. The bootstrap 95% confidence intervals produced by lmBoot_par were then used to test the null hypothesis that there is no relationship between Oxygen and each covariate, i.e. $\beta_i = 0$. 
 
-```{r rcode, message = FALSE, warning = FALSE, echo = FALSE, fig.width = 10, fig.height = 12, fig.cap="\\label{fig:rcode} Bootstrap Distributions of Parameter Estimates" }
+```{r rcode, message = FALSE, warning = FALSE, echo = FALSE, fig.width = 10, fig.height = 12, fig.cap="\\label{fig:rcode} Distributions of Bootstrap Parameter Estimates" }
 
 library(doParallel)
 bootLM <- function(inputData, index){
@@ -247,7 +246,7 @@ SAS 9.4, SAS Institute Inc., Cary, NC, USA.
 
 ## Appendix
 
-### A.1 The Bootlm Function
+### A.1 The bootLM Function
 
 ```{r, eval = FALSE}
 bootLM <- function(samples, inputData, index){
@@ -481,7 +480,7 @@ run;
 %SASBoot(NumberOfLoops=1000, DataSet=Asmt2.fitness, XVariable=Weight, YVariable=Oxygen);
 ```
 
-### A.8 Code to measure program runtime in SAS
+### A.8 Code to measure program runtime in SAS 
 
 ```{r, eval = FALSE}
 %let _sdtm=%sysfunc(datetime());
