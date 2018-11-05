@@ -3,6 +3,8 @@ title: "Report"
 author: "Drunken Master 2"
 date: "Due 5 November 2018"
 output:
+  html_document:
+    df_print: paged
   pdf_document: default
 toc: yes
 ---
@@ -17,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Bootstrapping is a nonparametric approach to statistical inference that implements Monte Carlo type simulations whereby a sampling distribution is built by generating a large number of random samples from the original dataset. Repeating calculations a large number of times, say 1000000 times, can become slow to compute. Therefore, the use of efficient and fast code is essential.
 
-This is project aimed to improve and produce two fast and efficient bootstrap functions. The original functions to be improved were provided by Donovan (2018). The function *lmBoot* was improved using R 3.5.1 software (R, 2018), while the program *SASBoot* was improved using SAS 9.4 (SAS Institute, Cary NC) software. 
+This is a project aimed to improve and produce two fast and efficient bootstrap functions. The original functions to be improved were provided by Donovan (2018). The function *lmBoot* was improved using R 3.5.1 software (R Core Team, 2018), while the program *SASBoot* was improved using SAS 9.4 (SAS Institute, Cary NC) software. 
 
 A short example analysis was given for each function. The fitness dataset from Rawlings (1998) contains measurements of the following seven variables obtained from 31 men:
 
@@ -29,7 +31,7 @@ A short example analysis was given for each function. The fitness dataset from R
 • RunPulse: heart rate at end of run  
 • MaxPulse: maximum heart rate recorded while running 
 
-A linear model was set up in each analysis and the bootstrap was used to generate confidence intervals for each of the covariates of intervals. Conclusions to hypothesis tests about the significance of the relationship between the response and the parameter estimates can be drawn using bootstrap methods depending on whether the confidence interval contains zero, one then fails to reject the null hypothesis, or if it does not contain zero, one can reject the null hypothesis.
+A linear model was fitted in each analysis and the bootstrap was used to generate confidence intervals for each of the covariates of interest. Conclusions to hypothesis tests regarding the significance of the relationships between the response and the parameter estimates can be drawn using bootstrap methods. If the confidence interval contains zero, one fails to reject the null hypothesis, and if it does not contain zero, one can reject the null hypothesis.
 
 ```{r load, echo = FALSE}
 fitData <- read.csv("data/fitness.csv")
@@ -63,7 +65,7 @@ $$
 
   + *forloops* are relatively slow and inefficient. Therefore, the *forloop* was replaced using *sapply* which applies a function to each element of a matrix. The function called *bootLM* (see Appendix A.1) was written to carry out the bootstrap algorithm. 
 
-2. The function *lmBoot_par* (see Appendix A.3) further improves *lmBoot_imp* using parallelisation. This allows the the execution of the function to be split up across multiple cores rather than just using one core. (The results for execution times of *lmBoot_par* produced in this report were produced using three cores).
+2. The function *lmBoot_par* (see Appendix A.3) further improves *lmBoot_imp* using parallelisation. This allows the the execution of the function to be split across multiple cores rather than just using one core. (The results for execution times of *lmBoot_par* produced in this report were produced using three cores).
 
 Table 1 illustrates differences in runtime for the three different versions of the *lmBoot* function. Each function was timed on how long it took to resample 100, 1000, 10000, 100000 and 1000000 samples.
 
@@ -88,7 +90,7 @@ barplot(speedInc, names.arg = c("lmBoot", "lmBoot_imp", "lmBoot_par"),
 Figure \ref{fig:speedPlot} illustrates the increases in execution time based on the time taken for each of the three functions to produce 10000 Bootstrap samples. Each function was also profiled for the execution of 10000 samples, the results for which can be found in Appendix A.4. The *lmBoot* function took 4560ms to execute, the majority of which was taken up by the *lm* function (2380ms) and the *rbind* function (1790ms). The *lmBoot_imp* function took 240ms to execute. The majority of the time was taken up applying the *bootLM* function to create the Bootstrap estimates (230ms), half of which was taken up by calculating the Beta estimates (160ms).  The *lmBoot_par* function took only 110ms to execute. The execution time was split equally between setting up the parallelisation and calculating the Bootstrap parameter estimates.
 
 ### *Microbenchmark of Boot and lmBoor_par*
-Table 2 contains the results of microbenchmark comparison between the builtin *Boot* function and the final *lmBoot_par* function. Each function was executed 10 times and the mean time taken to run the function is shown. The microbenchmark was run for 100, 1000, 10000 and 100000 samples. For smaller numbers of samples, less than 1000 samples, the *Boot* function executes faster than the *lmBoot_par* function. However, as the sample size increases *lmBoot_par* performs faster than the *boot* function.
+Table 2 contains the results of microbenchmark comparison between the built-in *Boot* function and the final *lmBoot_par* function. Each function was executed 10 times and the mean time taken to run the function is shown. The microbenchmark was run for 100, 1000, 10000 and 100000 samples. For smaller numbers of samples (fewer than 1000) the *Boot* function executes faster than the *lmBoot_par* function. However, as the sample size increases, *lmBoot_par* performs faster than the *boot* function.
 
 ```{r rmicro, echo = FALSE}
 bootTiming <- matrix(c("100", 922.0006, 198.1029,  
@@ -102,7 +104,7 @@ knitr::kable(bootTiming, digits = 4, caption = "Microbenchmark comparison (in mi
 
 ### *Example analysis using lmBoot_par*
 
-An example analysis was conducted using the fitness data set. A linear model was set up with Oxygen as the response and the remaining six variables as the predictors. The bootstrap 95% confidence intervals produced by lmBoot_par were then used to test the null hypothesis that there is no relationship between Oxygen and each covariate, i.e. $\beta_i = 0$. 
+An example analysis was conducted using the fitness data set. A linear model was fitted with Oxygen as the response and the remaining six variables as the predictors. The bootstrap 95% confidence intervals produced by lmBoot_par were then used to test the null hypothesis that there is no relationship between Oxygen and each covariate, i.e. $\beta_i = 0$. 
 
 ```{r rcode, message = FALSE, warning = FALSE, echo = FALSE, fig.width = 10, fig.height = 12, fig.cap="\\label{fig:rcode} Distributions of Bootstrap Parameter Estimates" }
 
@@ -154,7 +156,7 @@ knitr::kable(ciMatrix, digits = 3, caption = "95% Confidence Intervals for Param
              col.names = c("2.5%", "97.5%"))
 ```
 
-Table 3 displays the 95% confidence intervals for the estimates of the intercept and six covariates used in the linear regression. Figure 1 illustrates the distribution of 10000 bootstrap estimates for the same parameters. The confidence intervals for the Interval, Age, RunTime, and RunPulse parameter estimates do not contain zero, suggesting that there is evidence to conclude that a significant relationship exists between Oxygen and these covariates at the 5% level of significance. The confidence intervals for the Weight, RestPulse and MaxPulse parameter estimates do contain zero, suggesting that there is evidence to conclude that there is not a significant relationship between Oxygen and these covariates at the 5% level of significance. 
+Table 3 displays the 95% confidence intervals for the estimates of the intercept and six covariates used in the linear regression. Figure 1 illustrates the distribution of 10000 bootstrap estimates for the same parameters. The confidence intervals for the Intercept, Age, RunTime, and RunPulse parameter estimates do not contain zero, suggesting that there is evidence to conclude that a significant relationship exists between Oxygen and these covariates at the 5% level of significance. The confidence intervals for the Weight, RestPulse and MaxPulse parameter estimates do contain zero, suggesting that there is evidence to conclude that there is not a significant relationship between Oxygen and these covariates at the 5% level of significance. 
 
 \pagebreak 
 
@@ -167,7 +169,7 @@ The macro program *SASBoot* (Appendix A.6) uses bootstrap sampling methods to ca
 It takes in four agruments:
 
 - NumberOfLoops: the number of bootstrap iterations.
-- DataSet: A SAS dataset containing the response and covariate.
+- DataSet: A SAS dataset containing the response and covariates.
 - XVariable: The covariate for our regression model (gen. continuous numeric).
 - YVariable: The response variable for our regression model (gen. continuous numeric).
 
@@ -222,7 +224,7 @@ sasCI <- matrix(c("Intercept", 36.4824, 73.1590,
 knitr::kable(sasCI, digits = 3, caption = "95% Confidence Intervals for Parameter Estimates", col.names = c("Parameter", "2.5%", "97.5%"))
 ```
 
-Table 5 displays the 95% confidence intervals for the estimates of the intercept and Weight parameters. Figure 2 and Figure 3 illustrate the distribution of 1000 bootstrap estimates for the intercept and Weight parameters. The confidence interval for the intercept term (36.48, 73.15) does not contain 0 which suggested that the estimator is not signicant at the 5% level. The confidence interval for Weight (-0.32, 0.13) did contain 0 which suggested that the estimator is signicant at the 5% level.
+Table 5 displays the 95% confidence intervals for the estimates of the intercept and Weight parameters. Figure 2 and Figure 3 illustrate the distribution of 1000 bootstrap estimates for the intercept and Weight parameters respectively. The confidence interval for the intercept term (36.48, 73.15) does not contain 0 which suggests that the estimator is not signicant at the 5% level. The confidence interval for Weight (-0.32, 0.13) did contain 0 which suggests that the estimator is signicant at the 5% level.
 
 ![The distribution of the intercept parameter estimates](SAS Figures/SAS intercept distribution.png){ width=75% }
 
