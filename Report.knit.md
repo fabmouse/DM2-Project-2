@@ -7,9 +7,7 @@ output:
 toc: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 \pagebreak
 
@@ -31,9 +29,7 @@ A short example analysis was given for each function. The fitness dataset from R
 
 A linear model was set up in each analysis and the bootstrap was used to generate confidence intervals for each of the covariates of intervals. Conclusions to hypothesis tests about the significance of the relationship between the response and the parameter estimates can be drawn using bootstrap methods depending on whether the confidence interval contains zero, one then fails to reject the null hypothesis, or if it does not contain zero, one can reject the null hypothesis.
 
-```{r load, echo = FALSE}
-fitData <- read.csv("data/fitness.csv")
-```
+
 
 \pagebreak
 
@@ -67,17 +63,16 @@ $$
 
 Table 1 illustrates differences in runtime for three different versions of the lmBoot function; the original, an improved version and a parallelised version. Each function was timed on how long it took to resample 100, 1000, 10000, 100000 and 1000000 samples.
 
-```{r rSpeed, echo = FALSE}
-rTiming <- matrix(c(100, 0.079, 0.025, 1.337,  
-                    1000, 0.941, 0.134, 0.893, 
-                    10000, 8.502, 0.777, 1.148, 
-                    100000, 127.289, 6.604, 3.810, 
-                    1000000, "-", 87.170, 40.9990), byrow = TRUE, ncol = 4)
 
-knitr::kable(rTiming, digits = 3, caption = "Changes in Runtime (in seconds) of lmBoot", 
-             col.names = c("Samples", "lmBoot", "lmBoot Improved", "lmBoot Parallised"))
+Table: Changes in Runtime (in seconds) of lmBoot
 
-```
+Samples   lmBoot    lmBoot Improved   lmBoot Parallised 
+--------  --------  ----------------  ------------------
+100       0.079     0.025             1.337             
+1000      0.941     0.134             0.893             
+10000     8.502     0.777             1.148             
+1e+05     127.289   6.604             3.81              
+1e+06     -         87.17             40.999            
 
 Original boot fucntion (lmBoot) run speed for 100,000 samples = 127.289 secs
 Final boot function (lmBoot_4) run speed for 100,000 samples = 0.37 secs
@@ -88,69 +83,34 @@ Each function was also profiled for the execution of 10000 samples, the results 
 ### *Microbenchmark*
 Table 2 contains the results of microbenchmark comparison between the builtin *Boot* function and the final *lmBoot_par* function. Each function was executed 10 times and the mean time taken to run the function is shown. The microbenchmark was run for 100, 1000, 10000 and 100000 samples. For smaller numbers of samples, less than 1000 samples, the *Boot* function executes faster than the *lmBoot_par* function. However, as the sample size increases *lmBoot_par* performs faster than the *boot* function.
 
-```{r rmicro, echo = FALSE}
-bootTiming <- matrix(c(100, 922.0006, 198.1029,  
-                       1000, 1306.580, 1822.509, 
-                       10000, 1534.326, 16156.005,
-                       100000, 5.766977, 151.130571), byrow = TRUE, ncol = 3)
-knitr::kable(bootTiming, digits = 4, caption = "Microbenchmark comparison (in milliseconds) between lmBoot_par and Boot", 
-             col.names = c("Samples", "lmBoot_par", "Boot"))
 
-```
+Table: Microbenchmark comparison (in milliseconds) between lmBoot_par and Boot
+
+ Samples   lmBoot_par         Boot
+--------  -----------  -----------
+   1e+02     922.0006     198.1029
+   1e+03    1306.5800    1822.5090
+   1e+04    1534.3260   16156.0050
+   1e+05       5.7670     151.1306
 
 ### *Example analysis using lmBoot*
 
 An example analysis was conducted using the fitness data set. A linear model was set up with Oxygen as the response and the remaining six variables as the predictors. The bootstrap 95% confidence intervals produced by lmBoot_par were then used to test the null hypothesis that there is no relationship between Oxygen and each covariate, i.e. $\beta_i = 0$. 
 
-```{r rcode, message = FALSE, warning = FALSE, echo = FALSE, fig.width = 10, fig.height = 12, fig.cap="\\label{fig:rcode} Bootstrap Distributions of Parameter Estimates" }
 
-library(doParallel)
-bootLM <- function(inputData, index){
-  bootData <- inputData[sample(1:nrow(inputData), nrow(inputData), replace = T),]
-  Xmat <- bootData[, -1]
-  Ymat <- bootData[, 1]
-  beta <- solve(t(Xmat)%*%Xmat)%*%t(Xmat)%*%Ymat
-  return(t(beta))
-}
+Table: 95% Confidence Intervals for Parameter Estimates
 
-library(doParallel)
-lmBoot_par <- function(inputData, nBoot){
-  X <- cbind(1, inputData[, -1]) 
-  sampleData <- as.matrix(cbind(inputData[, 1], X))
-  nCores <- detectCores()
-  myClust <- makeCluster(nCores - 1, type = "PSOCK")
-  registerDoParallel(myClust)
-  bootResults <- array(dim = c(nBoot, ncol(X)))
-  bootResults <- parSapply(myClust, 1:nBoot, bootLM, inputData = sampleData)
-  stopCluster(myClust)
-  bootResults <- t(bootResults)
-  return(bootResults)
-}
+               2.5%     97.5%
+----------  -------  --------
+Intercept    79.660   121.086
+Age          -0.435    -0.008
+Weight       -0.162     0.063
+RunTime      -3.293    -1.843
+RestPulse    -0.180     0.098
+RunPulse     -0.558    -0.084
+MaxPulse     -0.040     0.522
 
-library(dplyr)
-par(mfrow = c(4,2))
-testData <- fitData %>% select(Oxygen, everything())
-set.seed(5763)
-testResults <- lmBoot_par(testData, 10000)
-
-#Plot the distributions for each parameter
-labels <- c("Intercept", names(testData[-1]))
-for(i in 1:ncol(testResults)){
-  hist(testResults[, i], breaks = 50, 
-       main = "", xlab = paste("Parameter Esimates of ", labels[i]))
-}
-  
-#Confidence intervals
-ciMatrix <- matrix(NA, nrow = ncol(testResults), ncol = 2)
-for(i in 1:ncol(testResults)){
-  ciMatrix[i, ] <- quantile(testResults[,i], probs = c(0.025, 0.975))
-}
-colnames(ciMatrix) <- c("2.5%", "97.5%")
-rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
-
-knitr::kable(ciMatrix, digits = 3, caption = "95% Confidence Intervals for Parameter Estimates", 
-             col.names = c("2.5%", "97.5%"))
-```
+![\label{fig:rcode} Bootstrap Distributions of Parameter Estimates](Report_files/figure-latex/rcode-1.pdf) 
 
 Table 3 displays the 95% confidence intervals for the estimates of the intercept and six covariates used in the linear regression. Figure 1 illustrates the distribution of 10000 bootstrap estimates for the same parameters. The confidence intervals for the Age, RunTime, and RunPulse parameter estimates do not contain zero, suggesting that there is evidence to conclude that a significant relationship exists between Oxygen and these covariates at the 5% level of significance. The confidence intervals for the Weight, RestPulse, and MaxPulse parameter estimates do contain zero, suggesting that there is evidence to conclude that there is not a significant relationship between Oxygen and these covariates at the 5% level of significance. 
 
@@ -197,26 +157,28 @@ which ensures that NumberOfLoops samples of the same size as the original data s
 
 The program was run over increasingly large numbers of replications and Table ### displays the runtime (in seconds) for each function. The code used to measure the run time of the SASBoot program can be found in Appendix A.8 (H, 2012).
 
-```{r sasSpeed, echo = FALSE}
-sasTiming <- matrix(c("100", 17.8680, 0.2350, 4.8280,                     		                           
-                      "1000", 169.4450, 0.2650, 5.1590,
-                      "10000", 1732.0520, 0.7140, 6.5350,
-                      "100000", "-", 5.2200, 11.3810), byrow = TRUE, 
-                        ncol = 4)
-knitr::kable(sasTiming, digits = 3, caption = "Changes in Runtime of SASBoot", 
-             col.names = c("Samples", "RegBoot", "SASBoot", "SASBoot (with rtf  output)"))
-```
+
+Table: Changes in Runtime of SASBoot
+
+Samples   RegBoot    SASBoot   SASBoot (with rtf  output) 
+--------  ---------  --------  ---------------------------
+100       17.868     0.235     4.828                      
+1000      169.445    0.265     5.159                      
+10000     1732.052   0.714     6.535                      
+100000    -          5.22      11.381                     
 
 ### *Example analysis using SASBoot*
 
 An example analysis was conducted using the fitness dataset. A linear model was set up with Oxygen as the response and Weight as the covariate. The bootstrap 95% confidence intervals produced by SASBoot were then used to test the null hypothesis that there is no significant relationship between Oxygen and Weight, i.e. $\beta_i = 0$. 
 
 
-```{r SAS, echo = FALSE}
-sasCI <- matrix(c("Intercept", 36.4824, 73.1590,                     		                           
-                   "Weight", -0.32842, 0.13533), byrow = TRUE, ncol = 3)
-knitr::kable(sasCI, digits = 3, caption = "95% Confidence Intervals for Parameter Estimates", col.names = c("Parameter", "2.5%", "97.5%"))
-```
+
+Table: 95% Confidence Intervals for Parameter Estimates
+
+Parameter   2.5%       97.5%   
+----------  ---------  --------
+Intercept   36.4824    73.159  
+Weight      -0.32842   0.13533 
 
 Table 5 displays the 95% confidence intervals for the estimates of the intercept and Weight parameters. Figure 2 and Figure 3 illustrate the distribution of 1000 bootstrap estimates for the intercept and Weight parameters. The confidence interval for the intercept term (36.48, 73.15) does not contain 0 which suggested that the estimator is not signicant at the 5% level. The confidence interval for Weight (-0.32, 0.13) did contain 0 which suggested that the estimator is signicant at the 5% level.
 
@@ -244,7 +206,8 @@ SAS 9.4, SAS Institute Inc., Cary, NC, USA.
 
 ### A.1 The Bootlm Function
 
-```{r, eval = FALSE}
+
+```r
 bootLM <- function(samples, inputData, index){
   #Purpose: Generate the linear regression beta coefficients
   #Inputs: samples: a dataframe containing the indices for the bootstrap samples
@@ -265,7 +228,8 @@ bootLM <- function(samples, inputData, index){
 
 ### A.2 The lmBoot_imp Function
 
-```{r, eval = FALSE}
+
+```r
 lmBoot_imp <- function(inputData, nBoot){
   #Purpose: Generate a large number of linear regression beta coefficients using
   #         bootstrap methods.
@@ -301,7 +265,8 @@ lmBoot_imp <- function(inputData, nBoot){
 
 ### A.3 The lmBoot_par Function
 
-```{r, eval = FALSE}
+
+```r
 library(doParallel)
 
 lmBoot_par <- function(inputData, nBoot){
@@ -358,7 +323,8 @@ lmBoot_par <- function(inputData, nBoot){
 
 ### A.5 Bootstrap Example Analysis with R
 
-```{r, eval = FALSE}
+
+```r
 library(dplyr)
 
 fitData <- read.csv("data/fitness.csv")
@@ -384,7 +350,8 @@ rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
 
 ### A.6 The SASBoot Program
 
-```{r, eval = FALSE}
+
+```r
 %macro SASBoot(NumberOfLoops, DataSet, XVariable, YVariable);
 
 /* Load data set to RAM and generate random samples of the data */
@@ -466,7 +433,8 @@ rownames(ciMatrix) <- c("Intercept", names(testData[-1]))
 
 ### A.7 Bootstrap Example Analysis with SAS
 
-```{r, eval = FALSE}
+
+```r
 /*Importing the fitness data set*/
 
 proc import out = Asmt2.fitness 
@@ -481,7 +449,8 @@ run;
 
 ### A.8 Code to measure program runtime in SAS
 
-```{r, eval = FALSE}
+
+```r
 %let _sdtm=%sysfunc(datetime());
 
   Program of interest to be timed
