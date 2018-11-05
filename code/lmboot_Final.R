@@ -25,7 +25,8 @@ lmBoot <- function(inputData, nBoot){
 #Create a function for bootstrapping algorithm to use inside other functions
 bootLM <- function(samples, inputData, index){
   #Purpose: Generate the linear regression beta coefficients
-  #Inputs: inputData: a dataframe containing the response variable, which must be 
+  #Inputs: samples: a dataframe containing the indices for the bootstrap samples
+  #        inputData: a dataframe containing the response variable, which must be 
   #        in the first column of the dataframe, and the covariates of interest
   #        index: the index of the position in the BootResults that Bootlm 
   #        should be applied to
@@ -50,14 +51,22 @@ lmBoot_imp <- function(inputData, nBoot){
   #         ConfidenceIntervals: A matrix containing 95% confidence intervals 
   #         for each parameter.
   
+  #Calculate the number of observations in the dataset 
+  nObs <- nrow(inputData)
+  
   #Create a sample dataset with a column of 1s for the intercept
   sampleData <- as.matrix(cbind(inputData[, 1], 1, inputData[, -1]))
+  
+  # Create the a matrix of indices for the bootstrap samples
+  bootSamples <- matrix(sample(1:nrow(inputData), nObs * nBoot, replace = T), 
+                        nrow = nObs, ncol = nBoot)
   
   #Create an empty array to store results
   bootResults <- array(dim = c(nBoot, ncol(sampleData[, -1]))) 
 
   #Use sapply to apply bootLM to bootResults matrix
-  bootResults <- sapply(1:nBoot, bootLM, inputData = sampleData)
+  bootResults <- sapply(1:nBoot, bootLM, inputData = sampleData, 
+                        samples = bootSamples)
   bootResults <- t(as.matrix(bootResults))
   
   return(bootResults)
@@ -88,7 +97,7 @@ lmBoot_par <- function(inputData, nBoot){
   myClust <- makeCluster(nCores - 1, type = "PSOCK")
   registerDoParallel(myClust)
   
-  # Create the samples
+  # Create the a matrix of indices for the bootstrap samples
   bootSamples <- matrix(sample(1:nrow(inputData), nObs * nBoot, replace = T), 
                         nrow = nObs, ncol = nBoot)
   
