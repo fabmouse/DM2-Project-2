@@ -65,7 +65,7 @@ $$
 
 2. The function *lmBoot_par* (see Appendix A.3) further improves *lmBoot_imp* using parallelisation. This allows the the execution of the function to be split across multiple cores rather than just using one core. (The results for execution times of *lmBoot_par* produced in this report were produced using three cores).
 
-Table 1 illustrates differences in runtime for the three different versions of the *lmBoot* function. Each function was timed on how long it took to resample 100, 1000, 10000, 100000 and 1000000 samples.
+Table 1 illustrates differences in runtime for the three different versions of the *lmBoot* function. Each function was timed on how long it took to resample 100, 1000, 10000, 100000 and 1000000 samples. The execution time for 1000000 using *lmBoot* was not recorded due to how slow and inefficient the function is.
 
 ```{r rSpeed, echo = FALSE}
 rTiming <- matrix(c("100", 0.079, 0.025, 1.337,  
@@ -94,7 +94,7 @@ Table 2 contains the results of microbenchmark comparison between the built-in *
 bootTiming <- matrix(c("100", 922.0006, 198.1029,  
                        "1000", 1306.580, 1822.509, 
                        "10000", 1534.326, 16156.005,
-                       "100000", 5.766977, 151.130571), byrow = TRUE, ncol = 3)
+                       "100000", 5766.977, 151130.571), byrow = TRUE, ncol = 3)
 knitr::kable(bootTiming, digits = 4, caption = "Microbenchmark comparison (in milliseconds) between lmBoot_par and Boot", 
              col.names = c("Samples", "lmBoot_par", "Boot"))
 
