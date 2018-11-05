@@ -1,5 +1,5 @@
 ---
-title: "Report"
+title: "Constructing Efficient Bootstraps in R and SAS"
 author: "Drunken Master 2"
 date: "Due 5 November 2018"
 output:
@@ -224,7 +224,7 @@ sasCI <- matrix(c("Intercept", 36.4824, 73.1590,
 knitr::kable(sasCI, digits = 3, caption = "95% Confidence Intervals for Parameter Estimates", col.names = c("Parameter", "2.5%", "97.5%"))
 ```
 
-Table 5 displays the 95% confidence intervals for the estimates of the intercept and Weight parameters. Figure 2 and Figure 3 illustrate the distribution of 1000 bootstrap estimates for the intercept and Weight parameters respectively. The confidence interval for the intercept term (36.48, 73.15) does not contain 0 which suggests that the estimator is not signicant at the 5% level. The confidence interval for Weight (-0.32, 0.13) did contain 0 which suggests that the estimator is signicant at the 5% level.
+Table 5 displays the 95% confidence intervals for the estimates of the intercept and Weight parameters. Figure 3 and Figure 4 illustrate the distribution of 1000 bootstrap estimates for the intercept and Weight parameters respectively. The confidence interval for the intercept term (36.48, 73.15) does not contain 0 which suggests that the estimator is not signicant at the 5% level. The confidence interval for Weight (-0.32, 0.13) did contain 0 which suggests that the estimator is signicant at the 5% level.
 
 ![The distribution of the intercept parameter estimates](SAS Figures/SAS intercept distribution.png){ width=75% }
 
